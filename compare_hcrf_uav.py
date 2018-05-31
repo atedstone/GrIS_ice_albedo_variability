@@ -36,13 +36,12 @@ spectra = xarray_classify.load_hcrf_data(HCRF_file, wvls)
 
 # Flights to iterate through
 flights = {
-'20170715':'uav_20170715_refl_5cm.tif',
-'20170717':'uav_20170717_refl_5cm.tif',
-'20170720':'uav_20170720_refl_5cm.tif',
-'20170721':'uav_20170721_refl_5cm.tif'
-'20170722':'uav_20170722_refl_5cm.tif',
-'20170723':'uav_20170723_refl_nolenscorr_5cm.tif'
-'20170724':'uav_20170724_refl_5cm_v2.tif'
+'20170715':'uav_20170715_refl_5cm_commongrid.tif',
+'20170720':'uav_20170720_refl_5cm_commongrid.tif',
+'20170721':'uav_20170721_refl_5cm_commongrid.tif',
+'20170722':'uav_20170722_refl_5cm_commongrid.tif',
+'20170723':'uav_20170723_refl_5cm_commongrid.tif',
+'20170724':'uav_20170724_refl_5cm_commongrid.tif'
 }
 
 store = {}
@@ -57,7 +56,7 @@ for ix, sampl in samples.iterrows():
 		d = sampl.date
 		dstr = str(d)
 
-		im = georaster.MultiBandRaster('/scratch/UAV/%s' %flights[dstr],
+		im = georaster.MultiBandRaster('/scratch/UAV/uav2017_commongrid_bandcorrect/%s' %flights[dstr],
 			load_data=False)
 
 		val, wins = im.value_at_coords(px, py, window=uav_window, 
@@ -94,7 +93,7 @@ temporal_gcps = pd.DataFrame(temporal_gcps).T
 # Now pull out values from each flight
 for flight in flights:
 
-	im = georaster.MultiBandRaster('/scratch/UAV/%s' %flights[flight],
+	im = georaster.MultiBandRaster('/scratch/UAV/uav2017_commongrid_bandcorrect/%s' %flights[flight],
 		load_data=False)
 
 	for ix, gcp in temporal_gcps.iterrows():
@@ -167,7 +166,7 @@ for band in wvl_centers:
 
 	plt.title('R$^2$: %s, Difference: %s' %(np.round(results.rsquared,2), np.round(diff_mean,2)))
 	plt.legend()
-	plt.savefig('/scratch/UAV/uav_hcrf_comparison_subset_2017_b%s_win%s_sd%s.png' %(band,uav_window,cull_sd), dpi=300)
+	plt.savefig('/scratch/UAV/uav_hcrf_comparison_bandcorrect_2017_b%s_win%s_sd%s.png' %(band,uav_window,cull_sd), dpi=300)
 
 	## RMSE (After Tagle 2017)
 	Eperc = ((keep['U%s' %band]-keep['R%s' %band]) * 100) / keep['R%s' %band]
