@@ -39,7 +39,9 @@ bbas = pd.concat([bba,info], axis=1)
 # means from each set of replicate measurements
 bbas_mean = bbas.groupby(['Day','Month','Site']).mean()
 bbas_mean = bbas_mean.reset_index()
+bbas_mean['spec_id'] = ['%i_%i_%s' %(r['Day'],r['Month'],r['Site']) for ix, r in bbas_mean.iterrows()]
 bbas_log = bbas_mean.merge(log_sheet,on=['Day','Month','Site'])
+
 
 # Calculate daily mean BBA from Fieldspec samples
 # Index corresponding to temporal samples
@@ -135,6 +137,7 @@ mod09b01 = mod09.sur_refl_b01_1.sel(X=uav_modis_x, Y=uav_modis_y, method='neares
 ## Calculate daily mean albedo from uav	
 uavalb = uav.albedo.where(uav.albedo > 0).mean(dim=('x','y'))
 uavalbm = uav.albedo.where(msk.r > 0).where(uav.albedo > 0).mean(dim=('x','y'))
+uavalbmstd = uav.albedo.where(msk.r > 0).where(uav.albedo > 0).std(dim=('x','y'))
 
 
 ##  Extract UAV albedos at each temporal ground sampling location
@@ -159,6 +162,7 @@ for ix,row in temporal_gcps.iterrows():
 	alb = uav.albedo.sel(x=x_slice, y=y_slice).load().median(dim=('x','y'))
 	uav_alb_sto[ix] = alb.to_pandas()
 uavalb_px = pd.DataFrame.from_dict(uav_alb_sto)
+uavalb_px.loc['2017-07-24'].loc[3:5] = np.nan
 
 # Add daily destructive sampling locations to this logic too.
 
@@ -166,7 +170,7 @@ uavalb_px = pd.DataFrame.from_dict(uav_alb_sto)
 ## Plot time series of albedo comparison.
 plt.figure()
 modalb.plot(marker='o', linestyle='none', label='MODIS 500 m', alpha=0.7)
-uavalb.plot(marker='o', linestyle='none', label='UAV whole area', alpha=0.7)
+uavalbm.plot(marker='o', linestyle='none', label='UAV masked area', alpha=0.7)
 uavalb_px.mean(axis=1).plot(marker='o', linestyle='none', label='UAV Temporal Sites', alpha=0.7)
 daily_bba_asd.plot(marker='o', linestyle='none', label='ASD Temporal Sites', alpha=0.7)
 plt.legend()
@@ -218,6 +222,18 @@ Histograms of whole area and common area through time
 
 
 
+## Approx biomass loading
+# From JC email 2018-05-24:
+# However as per Chris, remember that BBA vs cell counts not really appropriate - should be BBA vs biovolume.
+
+logcellsml = (-4.592 * uav.albedo.sel(time='2017-07-21') + 5.392) 
+# JC relationship doesn't seem of right magnitude - x100 seems to fix it but needs checking
+cellsml = xr.apply_ufunc(np.exp, logcellsml.load()) * 100
+cellsdwml = cellsml * 1 #chris reckons cell dry weight is roughly 1 ng (maybe a bit less) as a ballpark estimate - 2018-06-05
+cellsdwg = cellsdwml * 0.4
+cells_dw_mg_g = cellsdwg * 1e-6
+figure(), cells_dw_mg_g.plot.imshow(vmin=0,vmax=0.01, cmap='Reds')
+
 ## Blob detection
 # import cv2
 # detector = cv2.SimpleBlobDetector()
@@ -234,4 +250,38 @@ Histograms of whole area and common area through time
 # blobs_log[:, 2] = blobs_log[:, 2] * sqrt(2)
 
 
+
+#### Cell counts work
+import sys
+sys.path.append("/home/at15963/scripts/IceSurfClassifiers") 
+import xarray_classify
+
+## RedEdge values for spectra. --- use to load in RedEdge measurements of destructive sites.
+rededge = pd.read_excel('/home/at15963/Dropbox/work/black_and_bloom/multispectral-sensors-comparison.xlsx',
+	sheet_name='RedEdge')
+wvl_centers = rededge.central
+wvls = pd.DataFrame({'low':rededge.start, 'high':rededge.end})
+HCRF_file = '/scratch/field_spectra/HCRF_master.csv'
+spectra = xarray_classify.load_hcrf_data(HCRF_file, wvls)
+
+counts = pd.read_excel('/home/at15963/Dropbox/work/data/field_processed_2017/Updated_GrIS_Cell count results_250518.xlsx', sheet_name='Cells per ml')
+counts = counts.dropna()
+counts['Cells/ml'] = counts['Cells/ml'].astype('float')
+
+bbas_counts = bbas_mean.merge(counts, on='spec_id')
+
+spectra_counts = spectra.merge(counts, left_index=True, right_on='spec_id')
+
+spectra_counts = spectra_counts.dropna()
+spectra_counts = spectra_counts[spectra_counts['Cells/ml'] > 0]
+for band in spectra.columns:
+	figure()
+	plot(np.log(spectra_counts['Cells/ml']), spectra_counts[band], 'o')
+	title(band)
+	ols = sm.OLS(spectra_counts[band], sm.add_constant(np.log(spectra_counts['Cells/ml'])))
+	print(ols.fit().summary())
+# Shows that the best bands are apparently R475, R560
+
+
+estim_dw_mgg = counts['Cells/ml'] * 1 / 1e6
 
