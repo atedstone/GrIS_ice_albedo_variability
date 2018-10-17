@@ -9,6 +9,13 @@ import georaster
 import pandas as pd
 import pyproj
 import numpy as np
+import salem
+
+def add_srs(xrds, srs, x='x'):
+	for v in xrds.variables:
+		if x in xrds[v].dims:
+			xrds[v].attrs['pyproj_srs'] = srs
+	return xrds
 
 # UAV classified images and albedos
 uav_times = [dt.datetime(2017,7,15),
@@ -22,6 +29,7 @@ uav = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*class.nc',
 	concat_dim='time', chunks={'y':2000, 'x':2000})
 # Set up the time coordinate.
 uav['time'] = uav_times 
+uav = add_srs(uav, 'epsg:32623')
 
 # UAV HCRF reflectances
 uav_refl = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*commongrid.nc',
@@ -34,7 +42,7 @@ uav_refl['Band2'] -= 0.18
 uav_refl['Band3'] -= 0.15
 uav_refl['Band4'] -= 0.16
 uav_refl['Band5'] -= 0.1
-
+uav_refl = add_srs(uav_refl, 'epsg:32623')
 
 # UAV DEMs
 dem_times = [dt.datetime(2017,7,15),
@@ -47,11 +55,12 @@ dems = xr.open_mfdataset('/scratch/UAV/uav2017_dem/*commongrid.nc',
 	concat_dim='time')#, chunks={'y':2000, 'x':2000})
 # Set up the time coordinate.
 dems['time'] = dem_times 
+dems = add_srs(dems, 'epsg:32623')
 
 
 ## Load mask to delimit 'good' area of 2017-07-24 flight.
 msk = georaster.SingleBandRaster('/scratch/UAV/uav2017_common_grid_nc/good_area_2017-07-24_3_common.tif')
-
+# I think it is possible to load geotiffs via xarray/rasterio now?
 
 ##  Extract UAV albedos at each temporal ground sampling location
 # First convert site coordinates to UTM (only for the temporal sites, numbered 1:5)
