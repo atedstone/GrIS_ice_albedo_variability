@@ -14,6 +14,12 @@ ims = ['uav_20170715_refl_5cm.tif',
 'uav_20170724_refl_5cm_v2.tif'
 ]
 
+ims = ['uav_20170715_dem_5cm.tif',
+'uav_20170720_dem_5cm.tif',
+'uav_20170721_dem_5cm.tif',
+'uav_20170722_dem_5cm.tif',
+'uav_20170723_dem_5cm.tif']
+
 dcs = []
 for imf in ims:
 	im = georaster.MultiBandRaster(imf, load_data=False)
@@ -29,6 +35,12 @@ xll_min = np.floor(df.xll.min())
 xur_max = np.ceil(df.xur.max())
 yll_min = np.floor(df.yll.min())
 yur_max = np.ceil(df.yur.max())
+
+# Hard-code the values that this script chose for the reflectance mosaics
+xll_min = 310895.000
+xur_max = 311219.000
+yll_min = 7446509.000
+yur_max = 7446839.000
 
 print('XLL min: ', xll_min)
 print('XUR max: ', xur_max)
