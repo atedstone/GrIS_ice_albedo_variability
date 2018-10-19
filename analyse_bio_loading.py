@@ -67,4 +67,88 @@ for band in spectra.columns:
 
 estim_dw_mgg = counts['Cells/ml'] * 1 / 1e6
 
+# Create ratios
 ratio = uav_refl.Band5.sel(time='2017-07-21') / uav_refl.Band3.sel(time='2017-07-21')
+ratios = uav_refl.Band5 / uav_refl.Band3
+ratios.attrs['pyproj_srs'] = uav_refl.Band5.attrs['pyproj_srs']
+
+
+## Stats combined with DEM data
+ratio_msk = ratio.salem.roi(shape=shpf)
+ratio_msk_pd = ratio_msk.to_pandas()
+
+detr_msk = detrended_mean.detrended_mean.sel(time='2017-07-21').salem.roi(shape=shpf)
+detr_msk_pd = detr_msk.to_pandas()
+
+combo = pd.concat({'ratio':ratio_msk_pd.stack(), 'elev':detr_msk_pd.stack()},axis=1)
+combo = combo.dropna()
+
+
+periods = pd.interval_range(start=-0.4, end=0.8, periods=12)
+elev_bins = pd.cut(combo.elev, bins=periods)
+
+combo['elev_bin'] = elev_bins
+
+# Simple approach is just to get mean ratio in each category
+combo.groupby(elev_bins)['ratio'].agg(['mean'])
+# Also check how many observations are in each category
+combo.groupby(elev_bins)['ratio'].agg(['count']) 
+
+# Box plot
+combo['elev_bin'] = elev_bins
+# There are a lot of ratio outliers, to hide them set fliersize to zero
+figure(), sns.boxplot(x='elev_bin', y='ratio', data=combo, fliersize=0,
+	color='#E74C3C')
+# And then need to adjust y axis as it is still scaled to include fliers
+plt.ylim(0.6,1.6)
+ticks, labels = plt.xticks()
+new_labels = [-0.35,-0.25,-0.15,-0.05,0.05,0.15,0.25,0.35,0.45,0.55,0.65,0.75]
+plt.xticks(ticks,new_labels)
+
+
+## Look at ratio values of destructive samples
+# Load destructive locations
+samples = geopandas_helpers.load_xyz_gpd('/home/at15963/Dropbox/work/data/field_processed_2017/uav_sb_locations.csv',
+	x='sample_x', y='sample_y', crs={'init':'epsg:32623'})
+# Create timestamp
+samples['time'] = [dt.datetime.strptime(str(d), '%Y%m%d') for d in samples.date]
+samples = samples[pd.notnull(samples.id)]
+samples.index = samples.id
+
+# Get rid of bad points
+samples = samples.drop(labels=['20170721_SB2']) # 'listed as GCP-SB matching uncertain'
+
+store = {}
+win = 0.125 #25 cm
+for ix, sample in samples.iterrows():
+	if pd.notnull(sample.geometry.x):
+		#chla = ratios.sel(x=sample.geometry.x, y=sample.geometry.y, method='nearest') \
+		chla = ratios.sel(x=slice(sample.geometry.x-win,sample.geometry.x+win)) \
+					 .sel(y=slice(sample.geometry.y-win,sample.geometry.y+win)) \
+					 .sel(time=sample.time) \
+					 .mean()
+		store[sample.id] = chla.values
+storepd = pd.Series(store, name='ratio')
+
+# Append chla ratio value as column to samples dataframe
+samples = samples.join(storepd)
+
+samples_counts = pd.merge(left=samples, right=counts, left_on='spec_id', right_on='spec_id')
+samples_counts['Cells/ml'] = pd.to_numeric(samples_counts['Cells/ml'])
+
+figure(),plot(np.log(samples_counts['Cells/ml']), samples_counts['ratio'], 'o')
+figure(),plot(samples_counts['Cells/ml'], samples_counts['ratio'], 'o')
+
+samples_counts_cull = samples_counts[samples_counts['Cells/ml'] < 40000]
+samples_counts_cull = samples_counts_cull[pd.notnull(samples_counts_cull['ratio'])]
+
+import statsmodels.api as sm
+
+
+X = pd.to_numeric(samples_counts_cull['Cells/ml'])
+y = samples_counts_cull['ratio'].astype(float)
+X = sm.add_constant(X)
+model = sm.OLS(y, X) # or QuantReg
+#model = sm.WLS(y, X, weights=joined['U%s_std' %band]) # or QuantReg
+results = model.fit() # if QuantReg, can pass p=percentile here
+print(results.summary())
