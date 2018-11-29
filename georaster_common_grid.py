@@ -5,20 +5,30 @@ import pandas as pd
 
 import georaster
 
-ims = ['uav_20170715_refl_5cm.tif',
-'uav_20170717_refl_5cm.tif',
-'uav_20170720_refl_5cm.tif',
-'uav_20170721_refl_5cm.tif',
-'uav_20170722_refl_5cm.tif',
-'uav_20170723_refl_nolenscorr_5cm.tif',
-'uav_20170724_refl_5cm_v2.tif'
-]
+# ims = ['uav_20170715_refl_5cm.tif',
+# 'uav_20170717_refl_5cm.tif',
+# 'uav_20170720_refl_5cm.tif',
+# 'uav_20170721_refl_5cm.tif',
+# 'uav_20170722_refl_5cm.tif',
+# 'uav_20170723_refl_nolenscorr_5cm.tif',
+# 'uav_20170724_refl_5cm_v2.tif'
+# ]
 
-ims = ['uav_20170715_dem_5cm.tif',
-'uav_20170720_dem_5cm.tif',
-'uav_20170721_dem_5cm.tif',
-'uav_20170722_dem_5cm.tif',
-'uav_20170723_dem_5cm.tif']
+# ims = ['uav_20170715_dem_5cm.tif',
+# 'uav_20170720_dem_5cm.tif',
+# 'uav_20170721_dem_5cm.tif',
+# 'uav_20170722_dem_5cm.tif',
+# 'uav_20170723_dem_5cm.tif']
+
+# ims = [
+# 'uav_20170723_dem_nolenscorr_5cm_nogcp.tif',
+# 'uav_20170722_dem_5cm_nogcp.tif'
+# ]
+
+ims = [
+'uav_20170720_dem_5cm_v2_gcpzacc20.tif',
+'uav_20170721_dem_5cm_gcpzacc20.tif'
+]
 
 dcs = []
 for imf in ims:

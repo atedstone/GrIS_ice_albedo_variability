@@ -40,6 +40,8 @@ biovolume_log = results.params.ndci * ndci + results.params.const
 biovolume = np.exp(biovolume_log)
 biovolume.attrs['pyproj_srs'] = uav_refl.Band1.attrs['pyproj_srs']
 
+biov_nc = xr.Dataset({'biovolume':biovolume})
+biov_nc.to_netcdf('/scratch/UAV/biovolumes.nc')
 
 from matplotlib.colors import LogNorm
 figure(),biovolume.sel(time='2017-07-21').where(biovolume > 0).plot.imshow(norm=LogNorm(vmin=0.01, vmax=1e6))
@@ -53,3 +55,4 @@ colorbar()
 Next steps = export biovolumes as new dataset
 And then undertake comparison with detrended DEMs
 """
+

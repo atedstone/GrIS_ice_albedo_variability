@@ -17,7 +17,6 @@ def add_srs(xrds, srs, x='x'):
 			xrds[v].attrs['pyproj_srs'] = srs
 	return xrds
 
-# UAV classified images and albedos
 uav_times = [dt.datetime(2017,7,15),
 	dt.datetime(2017,7,20),
 	dt.datetime(2017,7,21),
@@ -25,14 +24,23 @@ uav_times = [dt.datetime(2017,7,15),
 	dt.datetime(2017,7,23),
 	dt.datetime(2017,7,24)
 	]
-uav = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*class.nc',
+
+# UAV classified images 
+uav_class = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*classified*epsg32622.nc',
 	concat_dim='time', chunks={'y':2000, 'x':2000})
 # Set up the time coordinate.
-uav['time'] = uav_times 
-uav = add_srs(uav, 'epsg:32623')
+uav_class['time'] = uav_times 
+uav_class = add_srs(uav_class, 'epsg:32622')
+
+# Albedos
+uav_alb = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*albedo*epsg32622.nc',
+	concat_dim='time', chunks={'y':2000, 'x':2000})
+# Set up the time coordinate.
+uav_alb['time'] = uav_times 
+uav_alb = add_srs(uav_alb, 'epsg:32622')
 
 # UAV HCRF reflectances
-uav_refl = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*commongrid.nc',
+uav_refl = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*refl*commongrid.tif_epsg32622.nc',
 	concat_dim='time', chunks={'y':2000, 'x':2000})
 # Set up the time coordinate.
 uav_refl['time'] = uav_times 
@@ -51,7 +59,7 @@ dem_times = [dt.datetime(2017,7,15),
 	dt.datetime(2017,7,22),
 	dt.datetime(2017,7,23)
 	]
-dems = xr.open_mfdataset('/scratch/UAV/uav2017_dem/*commongrid.nc',
+dems = xr.open_mfdataset('/scratch/UAV/uav2017_dem/*commongrid_epsg32622.nc',
 	concat_dim='time')#, chunks={'y':2000, 'x':2000})
 # Set up the time coordinate.
 dems['time'] = dem_times 
@@ -59,7 +67,7 @@ dems = add_srs(dems, 'epsg:32623')
 
 
 ## Load mask to delimit 'good' area of 2017-07-24 flight.
-msk = georaster.SingleBandRaster('/scratch/UAV/uav2017_common_grid_nc/good_area_2017-07-24_3_common.tif')
+msk = georaster.SingleBandRaster('/scratch/UAV/good_area_2017-07-24_3_common.tif')
 # I think it is possible to load geotiffs via xarray/rasterio now?
 
 ##  Extract UAV albedos at each temporal ground sampling location
@@ -78,3 +86,8 @@ temporal_gcps = pd.DataFrame(temporal_gcps).T
 
 
 ## Convert destructive site coordinates to UTM
+
+
+
+shpf = salem.read_shapefile('/scratch/UAV/uav2017_dem/dem2017_commonarea_999.shp')
+uav_poly = salem.read_shapefile('/scratch/UAV/uav_2017_area.shp')
