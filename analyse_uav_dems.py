@@ -19,17 +19,19 @@ figure(),roi.salem.quick_map(vmin=-0.2,vmax=0.2,cmap='RdBu_r')
 ## All analysis below uses this ROI
 detr_msk_all = detrended_mean.detrended_mean.salem.roi(shape=shpf)
 
+detr_msk_all = detrended.detrended.salem.roi(shape=shpf)
 
 # Daily histogram of detrended DEM
 figure()
 n = 1
 for t in detr_msk_all.time:
 	plt.subplot(len(detr_msk_all.time), 1, n)
-	plt.yscale('log')
+	#plt.yscale('log')
 	detr_msk_all.sel(time=t).plot.hist(bins=[-0.4,-0.3,-0.2,-0.1,0,0.1,0.2,0.3,0.4,0.5],width=0.08)
 	plt.title(t.values)
 	plt.ylim(1,9e6)
 	n += 1
+tight_layout()
 
 detrind_msk_all = detrended.detrended.sel(time=slice('2017-07-15','2017-07-22')).salem.roi(shape=shpf)
 rawdem_msk_all = dems.Band1.sel(time=slice('2017-07-15','2017-07-22')).salem.roi(shape=shpf)
