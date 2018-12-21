@@ -1,6 +1,8 @@
 # compare_uav_s2
 import statsmodels.api as sm
 
+from load_s2_data import *
+
 # Create a categorical colourmap.
 categories = ['Unknown', 'Water', 'Snow', 'CI', 'LA', 'HA', 'CC']
 vals = [0, 1, 2, 3, 4, 5, 6]
@@ -173,25 +175,55 @@ for time in s2_times:
 		this_pixel = uav_alb.Band1.sel(time=time, x=slice(x-10,x+10), y=slice(y-10,y+10)) \
 			.stack(dim=('x','y')).to_pandas()
 
+		px_alb = this_pixel.mean()
+		kurtosis = this_pixel.kurtosis()
+		skewness = this_pixel.skew()
+
 		# jb,jbpv,skew,kurtosis = sm.stats.stattools.jarque_bera(this_pixel)
 		# new_store[(x,y)] = dict(jb=jb, jbpv=jbpv)
 		values, bins = np.histogram(this_pixel, range=(0,1), bins=100)
 		values = 100 / np.sum(values) * values
-		new_store[(x,y)] = dict(binned=values)
+		new_store[(x,y)] = dict(binned=values, uav_alb=px_alb, kurtosis=kurtosis, skewness=skewness)
 
 	uav_px = pd.DataFrame.from_dict(new_store, orient='index')
 
 	uav_alb_dists[time] = uav_px
 
-g = sns.FacetGrid(uav_alb_dists['2017-07-20'], row="coordinate", aspect=15, height=.5)
+uav_alb_dists['2017-07-20']['s2_alb'] = albs.sel(time='2017-07-20').stack(dim=('x','y')).to_pandas().dropna()	
+uav_alb_dists['2017-07-21']['s2_alb'] = albs.sel(time='2017-07-21').stack(dim=('x','y')).to_pandas().dropna()	
+
+# Check degree of fit between UAV and S2 pixel albedos
+plt.figure()
+ax = plt.subplot(111)
+uav_alb_dists['2017-07-20'].plot(kind='scatter',y='uav_alb',x='s2_alb',marker='o',ax=ax)
+uav_alb_dists['2017-07-21'].plot(kind='scatter',y='uav_alb',x='s2_alb',marker='o',ax=ax)
+plt.plot((0,1),(0,1)) 
+
+import statsmodels.api as sm
+check_pd = pd.concat([ uav_alb_dists['2017-07-20'].filter(items=['s2_alb', 'uav_alb']), 
+	uav_alb_dists['2017-07-20'].filter(items=['s2_alb', 'uav_alb']) ], axis=0)
+X = check_pd.s2_alb
+X = sm.add_constant(X)
+y = check_pd.uav_alb
+model = sm.OLS(y,X)
+fit = model.fit()
+print(fit.summary())
+
+xx = np.arange(0.15, 0.60, 0.1)
+yy = fit.params.s2_alb * xx + fit.params.const
+plt.plot(xx,yy, '--')
+
+# for comparison purposes, add fit.params.const to uav_alb in order to up-adjust to 'match' s2.
+
+#g = sns.FacetGrid(uav_alb_dists['2017-07-20'], row="coordinate", aspect=15, height=.5)
 # !TO-DO! Think more about this tomorrow.
 
-def myfunc(data,color):
-	print(data.values)
-	plt.plot(np.arange(0,100,1), data.values[0])
-	plt.title('')
+# def myfunc(data,color):
+# 	print(data.values)
+# 	plt.plot(np.arange(0,100,1), data.values[0])
+# 	plt.title('')
 
-g.map(myfunc, 'binned')
+# g.map(myfunc, 'binned')
 
 uav_alb_dists['2017-07-21']['s2_class'] = uav_dists_perc['2017-07-21'].s2_class 
 uav_alb_dists['2017-07-21']['changes'] = changes
@@ -207,6 +239,24 @@ plt.ylabel('% coverage of S2 pixel')
 #plot(np.arange(0,100,1),uav_alb_dists['2017-07-21'][uav_alb_dists['2017-07-21']['s2_class'] == 3].binned.mean(),linewidth=3,alpha=1,color='black')
 plt.ylim(0,7)
 
+# Look at all data regardless of change or not:
+plt.figure()
+ax = plt.subplot(111)
+for ix, row in uav_alb_dists['2017-07-21'].iterrows():
+	plt.plot(np.arange(0,100,1), row.binned, alpha=0.5)
+
+
+uav_alb_dists_c = pd.concat(uav_alb_dists) 
+figure(),uav_alb_dists_c.plot(kind='scatter',x='uav_alb',y='kurtosis') 
+
+uav_alb_dists_c['uav_alb_bin'] = pd.cut(uav_alb_dists_c.uav_alb,np.arange(0,1,0.01))
+binned_dists = uav_alb_dists_c.binned.groupby(uav_alb_dists_c.uav_alb_bin).apply(np.mean)
+binned_dists.index = np.arange(0,0.99,0.01)
+
+plt.figure()
+for ix, row in binned_dists.iteritems():
+	if type(row) is np.ndarray:
+		plt.plot(np.arange(0,1,0.01), row)
 # Apply to analysis above to just the changed pixels - look at distribution change
 
 
@@ -303,3 +353,15 @@ s2alb_in_modis.mean(dim=('x','y')).load()
 # Result: array([0.394256, 0.45744 ])
 # Sentinel clearly shows a pretty major area-averaged albedo increase over the MODIS pixel extent.
 # What time periods of the day are we covering / is there a problem with some atmospheric correction somewhere?
+
+
+## b01 refl
+mod09 = xr.open_dataset('/scratch/MOD09GA.006.FB/MOD09GA.2017.006.epsg3413_b1234q.nc')
+mod09b01 = mod09.sur_refl_b01_1.sel(X=modis_x, Y=modis_y, method='nearest')
+
+
+# Check Sentinel 2 red band reflectance
+fn_path = '/home/at15963/projects/uav/data/S2/'
+im_path = 'S2B_MSIL2A_20170721T151909_N0205_R068_T22WEV_20170721T152003.SAFE_20m/S2B_MSIL2A_20170721T151909_N0205_R068_T22WEV_20170721T152003_20m.data/'
+s2_red = xr.open_rasterio(fn_path+im_path+'B4.img', chunks={'x':1000, 'y':1000})
+

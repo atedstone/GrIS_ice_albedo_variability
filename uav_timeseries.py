@@ -18,6 +18,8 @@ import numpy as np
 
 import georaster
 
+from load_uav_data import *
+
 # 2017 UAV pixel location in polar-stereo, corresponding to MODIS pixel to read in
 uav_modis_x = -190651
 uav_modis_y = -2507935
@@ -35,24 +37,25 @@ cmap = mpl.colors.ListedColormap(['#000000','#08519C','#FFFFFF', '#C6DBEF', '#FD
 
 
 ## Calculate total pixels available and classified
-total_px = uav.classified.where(uav.classified.notnull()).count(dim=('y','x'))
-total_px_msk = uav.classified.where(msk.r > 0).where(uav.classified.notnull()).count(dim=('y','x'))
+total_px = uav_class.Band1.where(uav_class.Band1.notnull()).count(dim=('y','x'))
+#total_px_msk = uav_class.Band1.where(msk.r > 0).where(uav_class.Band1.notnull()).count(dim=('y','x'))
 
 
 ## Ad sentinel-2 data!
 # Check msk orientation!
 
+
 ## Summary statistics of surface class change through time
-uav = uav.fillna(-1)
+uav_class = uav_class.fillna(-1)
 store = {}
 store_msk = {}
-for t in uav.time:
-	values, bins, patches = uav.classified.sel(time=t).plot.hist(bins=8, range=(-1,7))
-	nulls = uav.classified.sel(time=t).isnull().count()
-	values_msk, bins, patches = uav.classified.sel(time=t).where(msk.r > 0).plot.hist(bins=8, range=(-1,7))
+for t in uav_class.time:
+	values, bins, patches = uav_class.Band1.sel(time=t).plot.hist(bins=8, range=(-1,7))
+	nulls = uav_class.Band1.sel(time=t).isnull().count()
+	#values_msk, bins, patches = uav_class.Band1.sel(time=t).where(msk.r > 0).plot.hist(bins=8, range=(-1,7))
 	plt.close()
 	store[t.values] = values
-	store_msk[t.values] = values_msk
+	#store_msk[t.values] = values_msk
 
 keys = ['NaN', 'Unknown', 'Water', 'Snow', 'Clean Ice', 'Lbio', 'Hbio', 'Cryoconite']
 
@@ -64,11 +67,11 @@ valspd['Unknown'] = valspd['Unknown'] + valspd['NaN']
 valspd = valspd.drop(labels='NaN',axis=1)
 
 # Statistics just for masked area
-valspdm = pd.DataFrame.from_dict(store_msk, orient='index')
-valspdm.columns = keys
-valspdm = valspdm.sort_index()
-valspdm['Unknown'] = valspdm['Unknown'] + valspdm['NaN']
-valspdm = valspdm.drop(labels='NaN',axis=1)
+# valspdm = pd.DataFrame.from_dict(store_msk, orient='index')
+# valspdm.columns = keys
+# valspdm = valspdm.sort_index()
+# valspdm['Unknown'] = valspdm['Unknown'] + valspdm['NaN']
+# valspdm = valspdm.drop(labels='NaN',axis=1)
 
 ## Extract MOD10A1 Albedo for this location
 mod10 = xr.open_dataset('/scratch/MOD10A1.006.SW/MOD10A1.2017.006.reproj500m.nc')
@@ -80,16 +83,16 @@ mod09 = xr.open_dataset('/scratch/MOD09GA.006.FB/MOD09GA.2017.006.epsg3413_b1234
 mod09b01 = mod09.sur_refl_b01_1.sel(X=uav_modis_x, Y=uav_modis_y, method='nearest')
 
 ## Calculate daily mean albedo from uav	
-uavalb = uav.albedo.where(uav.albedo > 0).mean(dim=('x','y'))
-uavalbm = uav.albedo.where(msk.r > 0).where(uav.albedo > 0).mean(dim=('x','y'))
-uavalbmstd = uav.albedo.where(msk.r > 0).where(uav.albedo > 0).std(dim=('x','y'))
+uavalb = uav_alb.Band1.where(uav_alb.Band1 > 0).salem.roi(shape=uav_poly).mean(dim=('x','y'))
+# uavalbm = uav_alb.albedo.where(msk.r > 0).where(uav_alb.albedo > 0).mean(dim=('x','y'))
+# uavalbmstd = uav_alb.albedo.where(msk.r > 0).where(uav_alb.albedo > 0).std(dim=('x','y'))
 
 uav_alb_sto = {}
 for ix,row in temporal_gcps.iterrows():
 	# pixels are 0.05 m
 	x_slice = slice(row.x-(0.05*4),row.x+(0.05*4))
 	y_slice = slice(row.y-(0.05*4),row.y+(0.05*4))
-	alb = uav.albedo.sel(x=x_slice, y=y_slice).load().median(dim=('x','y'))
+	alb = uav_alb.Band1.sel(x=x_slice, y=y_slice).load().median(dim=('x','y'))
 	uav_alb_sto[ix] = alb.to_pandas()
 uavalb_px = pd.DataFrame.from_dict(uav_alb_sto)
 uavalb_px.loc['2017-07-24'].loc[3:5] = np.nan
@@ -100,12 +103,15 @@ uavalb_px.loc['2017-07-24'].loc[3:5] = np.nan
 ## Plot time series of albedo comparison.
 plt.figure()
 modalb.plot(marker='o', linestyle='none', label='MODIS 500 m', alpha=0.7)
-uavalbm.plot(marker='o', linestyle='none', label='UAV masked area', alpha=0.7)
+#uavalbm.plot(marker='o', linestyle='none', label='UAV masked area', alpha=0.7)
 uavalb_px.mean(axis=1).plot(marker='o', linestyle='none', label='UAV Temporal Sites', alpha=0.7)
 daily_bba_asd.plot(marker='o', linestyle='none', label='ASD Temporal Sites', alpha=0.7)
 plt.legend()
 plt.xlim('2017-07-12', '2017-07-27')
 
+
+combo = pd.DataFrame({'MOD10A1':modalb.to_pandas(), 'UAV':uavalb.to_pandas(), 'ASD':daily_bba_asd})
+combo.to_csv('/home/at15963/projects/uav/outputs/sensor_albedos.csv')
 
 ## Plot time series of reflectance comparison
 uavred = uav_refl.Band3.where(uav_refl.Band3 > 0).mean(dim=('x','y'))
@@ -115,15 +121,16 @@ plt.figure(figsize=(4,9))
 n = 1
 ytick_locs = np.array([0, 5e5, 1e6, 1.5e6, 2e6, 2.5e6])
 ytick_labels = (ytick_locs * (0.05**2)).astype(int) #sq m
-for scene in uav.time:
+for scene in uav_class.time:
 	plt.subplot(6, 1, n)
-	uavh = uav.sel(time=scene)
+	uavha = uav_alb.Band1.sel(time=scene).salem.roi(shape=uav_poly)
+	uavhc = uav_class.Band1.sel(time=scene).salem.roi(shape=uav_poly)
 	if pd.Timestamp(scene.values) == pd.datetime(2017, 7, 24):
-		uavh_al = uavh.albedo.where(msk.r > 0)
-		uavh_cl = uavh.classified.where(msk.r > 0)
+		uavh_al = uavha #.where(msk.r > 0)
+		uavh_cl = uavhc #.where(msk.r > 0)
 	else:
-		uavh_al = uavh.albedo
-		uavh_cl = uavh.classified
+		uavh_al = uavha
+		uavh_cl = uavhc
 
 	uavh_al.where(uavh_cl == 5) \
 		.plot.hist(bins=50, range=(0,1), alpha=0.7, label='High Biomass', color='#B30000')
@@ -140,7 +147,6 @@ for scene in uav.time:
 	plt.xlabel('Albedo')
 	n += 1
 plt.tight_layout()
-
 """
 Other logic to add:
 
