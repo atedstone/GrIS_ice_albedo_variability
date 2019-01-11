@@ -16,13 +16,21 @@ albedos = pd.read_csv('/home/at15963/projects/uav/outputs/sensor_albedos.csv',
 s2_albedos = pd.read_csv('/home/at15963/projects/uav/outputs/s2_alb_uavpx.csv',
 	index_col=0, parse_dates=True, names=['date','alb'])
 
+# MODIS sinusoidal albedos
+sin_albs = pd.read_csv('/home/at15963/projects/uav/outputs/MOD10A1_sinusoidal_pixel_albedos.csv',
+	index_col=0, parse_dates=True)
+
+sin_albs['avg'] = sin_albs.mean(axis=1)
+
 plt.figure()
 
 # Albedos
 ax1 = plt.subplot(311)
-plt.plot(albedos.index, albedos.MOD10A1, 'o', label='MOD10A1')
-plt.plot(albedos.index, albedos.UAV, '^', label='UAV')
-plt.plot(s2_albedos.index, s2_albedos.alb, 's', label='S2')
+#plt.plot(sin_albs.index, sin_albs.left, 'o', markeredgecolor='red', color='none', label='MOD10A1 L')
+#plt.plot(sin_albs.index, sin_albs.right, 'o', markeredgecolor='blue', color='none', label='MOD10A1 R')
+plt.plot(sin_albs.index, sin_albs.avg, 'o', markeredgecolor='blue', color='none', label='MOD10A1')
+plt.plot(albedos.index, albedos.UAV, 'x', label='UAV', color='black')
+plt.plot(s2_albedos.index, s2_albedos.alb, '+', label='S2', color='black')
 plt.legend(ncol=3)
 plt.ylabel('Albedo')
 plt.ylim(0.15, 0.85)
