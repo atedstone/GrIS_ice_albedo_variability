@@ -350,6 +350,10 @@ mdx,mdy = modis_proj(x,y)
 plot(upx, upy)
 
 s2alb_in_modis.mean(dim=('x','y')).load()
+s2alb_in_modis.to_pandas().to_csv('/home/at15963/projects/uav/outputs/s2_alb_modispx.csv')
+
+s2_alb = s2_data.albedo.salem.roi(shape='/scratch/UAV/uav_2017_area.shp').mean(dim=('x','y'))
+s2_alb.to_pandas().to_csv('/home/at15963/projects/uav/outputs/s2_alb_uavpx.csv')
 # Result: array([0.394256, 0.45744 ])
 # Sentinel clearly shows a pretty major area-averaged albedo increase over the MODIS pixel extent.
 # What time periods of the day are we covering / is there a problem with some atmospheric correction somewhere?

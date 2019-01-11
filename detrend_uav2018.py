@@ -16,7 +16,7 @@ dem = xr.open_dataset('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_dem_c
 ## Gaussian low-pass approach
 # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_filtering/py_filtering.html
 # This uses an astonishing amount of RAM ...
-blurred = cv2.GaussianBlur(dem.squeeze().values, (399,399), 0)
+blurred = cv2.GaussianBlur(dem.Band1.squeeze().values, (399,399), 0)
 
 
 coords = {'y':dem.y, 'x':dem.x}
@@ -29,7 +29,7 @@ blurred_xr = None
 blurred = xr.open_dataset('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_dem_blur399.nc',
 	chunks={'y':2000, 'x':2000})
 
-detrended = dem.squeeze() - blurred.blurred
+detrended = dem.Band1.squeeze() - blurred.blurred
 detrended.name = 'detrended'
 detrended.to_netcdf('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_dem_blur399_detr.nc')
 detrended = None

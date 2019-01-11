@@ -63,7 +63,7 @@ dems = xr.open_mfdataset('/scratch/UAV/uav2017_dem/*commongrid_epsg32622.nc',
 	concat_dim='time')#, chunks={'y':2000, 'x':2000})
 # Set up the time coordinate.
 dems['time'] = dem_times 
-dems = add_srs(dems, 'epsg:32623')
+dems = add_srs(dems, 'epsg:32622')
 
 
 ## Load mask to delimit 'good' area of 2017-07-24 flight.
@@ -91,3 +91,4 @@ temporal_gcps = pd.DataFrame(temporal_gcps).T
 
 shpf = salem.read_shapefile('/scratch/UAV/uav2017_dem/dem2017_commonarea_999.shp')
 uav_poly = salem.read_shapefile('/scratch/UAV/uav_2017_area.shp')
+uav_poly_upe = salem.read_shapefile('/scratch/UAV/uav_2018_area.shp')
