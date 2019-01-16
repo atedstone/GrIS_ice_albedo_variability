@@ -65,6 +65,9 @@ dems = xr.open_mfdataset('/scratch/UAV/uav2017_dem/*commongrid_epsg32622.nc',
 dems['time'] = dem_times 
 dems = add_srs(dems, 'epsg:32622')
 
+dem_upe = xr.open_dataset('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_dem_common.nc')
+dem_upe = add_srs(dem_upe, 'epsg:32622')
+
 
 ## Load mask to delimit 'good' area of 2017-07-24 flight.
 msk = georaster.SingleBandRaster('/scratch/UAV/good_area_2017-07-24_3_common.tif')

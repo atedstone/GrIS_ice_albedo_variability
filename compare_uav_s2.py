@@ -1,6 +1,12 @@
 # compare_uav_s2
 import statsmodels.api as sm
+import matplotlib as mpl
+import pandas as pd
+import xarray as xr
+import numpy as np
+import pyproj
 
+from load_uav_data import *
 from load_s2_data import *
 
 # Create a categorical colourmap.
@@ -18,8 +24,8 @@ s2_times = ['2017-07-20', '2017-07-21']
 subset = s2_data.classified.sel(x=subset_x,	y=subset_y)
 albs = s2_data.albedo.sel(x=subset_x, y=subset_y).salem.roi(shape=uav_poly)
 
-plt.figure()
-subset.plot(col='time')
+# plt.figure()
+# subset.plot(col='time')
 
 
 
@@ -59,10 +65,10 @@ for time in s2_times:
 
 
 # Look at the distribution of heavy algae within the overall S2 classification
-figure(), sns.boxplot(data=uav_px, x='s2_class', y='HA')
+#figure(), sns.boxplot(data=uav_px, x='s2_class', y='HA')
 
 # And the nice simple option that took quite some time to figure out...
-figure(),sns.boxplot(data=uav_px)
+#figure(),sns.boxplot(data=uav_px)
 #also try sns.boxenplot!
 
 # Budget for sub-S2-pixel make-up for each S2 pixel classification
@@ -75,8 +81,8 @@ figure(),sns.boxplot(data=uav_px)
 
 ## Look at only pixels which have changed
 changes = uav_dists['2017-07-21']['s2_class'] - uav_dists['2017-07-20']['s2_class']
-figure(),sns.boxenplot(data=uav_dists_perc['2017-07-20'][changes == -1]) 
-figure(),sns.boxenplot(data=uav_dists_perc['2017-07-21'][changes == -1])
+#figure(),sns.boxenplot(data=uav_dists_perc['2017-07-20'][changes == -1]) 
+#figure(),sns.boxenplot(data=uav_dists_perc['2017-07-21'][changes == -1])
 
 # What about albedo change? (from narrowband-broadband conversion)
 s2_albs = {}
@@ -85,7 +91,7 @@ for time in s2_times:
 # ~7% albedo increase from 20th to 21st in the S2 pixels which changed class
 
 # At the UAV level, did the albedo of all classes change, or just certain classes?
-figure(),sns.boxplot(data=uav_alb.Band1.sel(time='2017-07-20').salem.roi(shape=uav_poly).stack(dim=('x','y')).to_pandas().dropna()) 
+#figure(),sns.boxplot(data=uav_alb.Band1.sel(time='2017-07-20').salem.roi(shape=uav_poly).stack(dim=('x','y')).to_pandas().dropna()) 
 
 
 # Did HA and/or LA areas get darker, hypothesis being lightening of adjacent patches due to 
@@ -193,11 +199,11 @@ uav_alb_dists['2017-07-20']['s2_alb'] = albs.sel(time='2017-07-20').stack(dim=('
 uav_alb_dists['2017-07-21']['s2_alb'] = albs.sel(time='2017-07-21').stack(dim=('x','y')).to_pandas().dropna()	
 
 # Check degree of fit between UAV and S2 pixel albedos
-plt.figure()
-ax = plt.subplot(111)
-uav_alb_dists['2017-07-20'].plot(kind='scatter',y='uav_alb',x='s2_alb',marker='o',ax=ax)
-uav_alb_dists['2017-07-21'].plot(kind='scatter',y='uav_alb',x='s2_alb',marker='o',ax=ax)
-plt.plot((0,1),(0,1)) 
+# plt.figure()
+# ax = plt.subplot(111)
+# uav_alb_dists['2017-07-20'].plot(kind='scatter',y='uav_alb',x='s2_alb',marker='o',ax=ax)
+# uav_alb_dists['2017-07-21'].plot(kind='scatter',y='uav_alb',x='s2_alb',marker='o',ax=ax)
+# plt.plot((0,1),(0,1)) 
 
 import statsmodels.api as sm
 check_pd = pd.concat([ uav_alb_dists['2017-07-20'].filter(items=['s2_alb', 'uav_alb']), 
@@ -207,11 +213,11 @@ X = sm.add_constant(X)
 y = check_pd.uav_alb
 model = sm.OLS(y,X)
 fit = model.fit()
-print(fit.summary())
+#print(fit.summary())
 
 xx = np.arange(0.15, 0.60, 0.1)
 yy = fit.params.s2_alb * xx + fit.params.const
-plt.plot(xx,yy, '--')
+#plt.plot(xx,yy, '--')
 
 # for comparison purposes, add fit.params.const to uav_alb in order to up-adjust to 'match' s2.
 
@@ -225,38 +231,39 @@ plt.plot(xx,yy, '--')
 
 # g.map(myfunc, 'binned')
 
+uav_alb_dists['2017-07-20']['s2_class'] = uav_dists_perc['2017-07-20'].s2_class 
 uav_alb_dists['2017-07-21']['s2_class'] = uav_dists_perc['2017-07-21'].s2_class 
 uav_alb_dists['2017-07-21']['changes'] = changes
-plt.figure()
-ax = plt.subplot(111)
-for ix, row in uav_alb_dists['2017-07-21'].iterrows():
-	#if row.s2_class == 3:
-	if row.changes == -1:
-		#plt.plot(np.arange(0,100,1), row.binned, alpha=0.5)
-		this_px_diff = row.binned - uav_alb_dists['2017-07-20'].loc[ix].binned
-		plt.plot(np.arange(0,100,1), this_px_diff, alpha=0.5)
-plt.ylabel('% coverage of S2 pixel')
-#plot(np.arange(0,100,1),uav_alb_dists['2017-07-21'][uav_alb_dists['2017-07-21']['s2_class'] == 3].binned.mean(),linewidth=3,alpha=1,color='black')
-plt.ylim(0,7)
+# plt.figure()
+# ax = plt.subplot(111)
+# for ix, row in uav_alb_dists['2017-07-21'].iterrows():
+# 	#if row.s2_class == 3:
+# 	if row.changes == -1:
+# 		#plt.plot(np.arange(0,100,1), row.binned, alpha=0.5)
+# 		this_px_diff = row.binned - uav_alb_dists['2017-07-20'].loc[ix].binned
+# 		plt.plot(np.arange(0,100,1), this_px_diff, alpha=0.5)
+# plt.ylabel('% coverage of S2 pixel')
+# #plot(np.arange(0,100,1),uav_alb_dists['2017-07-21'][uav_alb_dists['2017-07-21']['s2_class'] == 3].binned.mean(),linewidth=3,alpha=1,color='black')
+# plt.ylim(0,7)
 
 # Look at all data regardless of change or not:
-plt.figure()
-ax = plt.subplot(111)
-for ix, row in uav_alb_dists['2017-07-21'].iterrows():
-	plt.plot(np.arange(0,100,1), row.binned, alpha=0.5)
+# plt.figure()
+# ax = plt.subplot(111)
+# for ix, row in uav_alb_dists['2017-07-21'].iterrows():
+# 	plt.plot(np.arange(0,100,1), row.binned, alpha=0.5)
 
 
 uav_alb_dists_c = pd.concat(uav_alb_dists) 
-figure(),uav_alb_dists_c.plot(kind='scatter',x='uav_alb',y='kurtosis') 
+#figure(),uav_alb_dists_c.plot(kind='scatter',x='uav_alb',y='kurtosis') 
 
 uav_alb_dists_c['uav_alb_bin'] = pd.cut(uav_alb_dists_c.uav_alb,np.arange(0,1,0.01))
 binned_dists = uav_alb_dists_c.binned.groupby(uav_alb_dists_c.uav_alb_bin).apply(np.mean)
 binned_dists.index = np.arange(0,0.99,0.01)
 
-plt.figure()
-for ix, row in binned_dists.iteritems():
-	if type(row) is np.ndarray:
-		plt.plot(np.arange(0,1,0.01), row)
+# plt.figure()
+# for ix, row in binned_dists.iteritems():
+# 	if type(row) is np.ndarray:
+# 		plt.plot(np.arange(0,1,0.01), row)
 # Apply to analysis above to just the changed pixels - look at distribution change
 
 
@@ -285,18 +292,18 @@ for ix, value in changes.iteritems():
 
 uav_alb_change = pd.DataFrame.from_dict(new_store, orient='index')
 
-plt.figure()
-ax = plt.subplot(111)
-for ix,row in uav_alb_change.iterrows():
-	#plt.plot(np.arange(-100,100,1),row.binned, alpha=0.6)
-	row.alb_in_bin[pd.isnull(row.alb_in_bin)] = 0
-	alb_colors = row.alb_in_bin
-	alb_colors[alb_colors < -0.5] = -0.5
-	alb_colors[alb_colors >  0.5] =  0.5
-	alb_colors = alb_colors + 0.5
-	plt.scatter(np.arange(-100,100,1),row.binned, alpha=0.6, c=cm.YlGnBu_r(row.alb_in_bin), edgecolor='none')
-	#(row.alb_in_bin + 1) / 2
-plt.plot(np.arange(-100,100,1), uav_alb_change.binned.mean(), linewidth=3, color='black')
+# plt.figure()
+# ax = plt.subplot(111)
+# for ix,row in uav_alb_change.iterrows():
+# 	#plt.plot(np.arange(-100,100,1),row.binned, alpha=0.6)
+# 	row.alb_in_bin[pd.isnull(row.alb_in_bin)] = 0
+# 	alb_colors = row.alb_in_bin
+# 	alb_colors[alb_colors < -0.5] = -0.5
+# 	alb_colors[alb_colors >  0.5] =  0.5
+# 	alb_colors = alb_colors + 0.5
+# 	plt.scatter(np.arange(-100,100,1),row.binned, alpha=0.6, c=cm.YlGnBu_r(row.alb_in_bin), edgecolor='none')
+# 	#(row.alb_in_bin + 1) / 2
+# plt.plot(np.arange(-100,100,1), uav_alb_change.binned.mean(), linewidth=3, color='black')
 
 uav_alb_c_mean = pd.Series(uav_alb_change.binned.mean(),index=np.arange(-100,100,1))
 uav_alb_c_mean.loc[-100:-1].sum()
@@ -340,20 +347,20 @@ modis_px_y = slice(modis_y_utm+250, modis_y_utm-250)
 s2alb_in_modis = s2_data.albedo.sel(x=modis_px_x, y=modis_px_y)
 s2cla_in_modis = s2_data.classified.sel(x=modis_px_x, y=modis_px_y)
 
-figure()
-ax = plt.subplot(111)
-s2cla_in_modis.sel(time='2017-07-21').plot(ax=ax)
+# figure()
+# ax = plt.subplot(111)
+# s2cla_in_modis.sel(time='2017-07-21').plot(ax=ax)
 
 x,y = uav_poly.iloc[0].geometry.exterior.xy
 upx,upy = s2_proj(x,y)
 mdx,mdy = modis_proj(x,y)
-plot(upx, upy)
+# plot(upx, upy)
 
 s2alb_in_modis.mean(dim=('x','y')).load()
-s2alb_in_modis.to_pandas().to_csv('/home/at15963/projects/uav/outputs/s2_alb_modispx.csv')
+##2alb_in_modis.to_pandas().to_csv('/home/at15963/projects/uav/outputs/s2_alb_modispx.csv')
 
 s2_alb = s2_data.albedo.salem.roi(shape='/scratch/UAV/uav_2017_area.shp').mean(dim=('x','y'))
-s2_alb.to_pandas().to_csv('/home/at15963/projects/uav/outputs/s2_alb_uavpx.csv')
+#s2_alb.to_pandas().to_csv('/home/at15963/projects/uav/outputs/s2_alb_uavpx.csv')
 # Result: array([0.394256, 0.45744 ])
 # Sentinel clearly shows a pretty major area-averaged albedo increase over the MODIS pixel extent.
 # What time periods of the day are we covering / is there a problem with some atmospheric correction somewhere?

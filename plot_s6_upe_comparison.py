@@ -137,6 +137,12 @@ counts2, bins = np.histogram(uavha_upe.where(uavhc_upe == 2), bins=50, range=(0,
 counts3, bins = np.histogram(uavha_upe.where(uavhc_upe == 3), bins=50, range=(0,1))
 counts4, bins = np.histogram(uavha_upe.where(uavhc_upe == 4), bins=50, range=(0,1))
 counts5, bins = np.histogram(uavha_upe.where(uavhc_upe == 5), bins=50, range=(0,1))
+
+# counts6, bins = np.histogram(uavha_upe.where(uavhc_upe == 6), bins=50, range=(0,1))
+# sum(counts6) * (0.05**2)
+# counts1, bins = np.histogram(uavha_upe.where(uavhc_upe == 1), bins=50, range=(0,1))
+# sum(counts1) * (0.05**2)
+
 counts_all_upe = pd.DataFrame({'Snow':counts2, 'CI':counts3, 'LA':counts4, 'HA':counts5}, index=bins[:-1])
 
 counts_all_upe = counts_all_upe * (0.05**2)
@@ -162,5 +168,7 @@ To do:
 Add sampled total area for each location - within specified polygon.
 Add scale bars
 Add location map context.
+Mark dominant slope direction on the two top plots. 
+Add some boxing or something to illustrate main supraglacial stream on S6 plot.
 
 """
