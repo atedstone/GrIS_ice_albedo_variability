@@ -335,6 +335,9 @@ consider t-tests
 #####
 # S2 - MODIS intercomparison
 #####
+
+s2_in_modis = s2_data.albedo.salem.roi(shape='/scratch/UAV/coincident_s6_modis_latlon.shp')
+
 # Convert MODIS coordinates
 modis_x = -190651
 modis_y = -2507935

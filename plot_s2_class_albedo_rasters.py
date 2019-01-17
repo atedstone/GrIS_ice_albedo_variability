@@ -143,11 +143,11 @@ plt.xlim(-0.2,0.3)
 plt.xlabel('Albedo change')
 plt.tick_params(axis='x', top='off')
 
-plt.subplots_adjust(bottom=0.17)
+plt.subplots_adjust(bottom=0.19)
 
 # Add colorbar corresponding to albedo scatter colours in above plot
 # [left, bottom, width, height] in fractions of figure width and height
-ax = fig.add_axes([0.2, 0.1, 0.6, 0.02])
+ax = fig.add_axes([0.2, 0.09, 0.6, 0.02])
 cmap_plot = mpl.cm.YlGnBu_r
 cb1 = mpl.colorbar.ColorbarBase(ax, cmap=cmap_plot,
                                 norm=norm,
