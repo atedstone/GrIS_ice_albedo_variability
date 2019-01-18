@@ -233,6 +233,7 @@ yy = fit.params.s2_alb * xx + fit.params.const
 
 uav_alb_dists['2017-07-20']['s2_class'] = uav_dists_perc['2017-07-20'].s2_class 
 uav_alb_dists['2017-07-21']['s2_class'] = uav_dists_perc['2017-07-21'].s2_class 
+uav_alb_dists['2017-07-20']['changes'] = changes
 uav_alb_dists['2017-07-21']['changes'] = changes
 # plt.figure()
 # ax = plt.subplot(111)

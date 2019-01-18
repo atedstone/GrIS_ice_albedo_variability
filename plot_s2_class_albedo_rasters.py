@@ -62,6 +62,7 @@ ax = plt.subplot(224, projection=map_proj)
 s2_data.albedo.sel(x=modis_area_x, y=modis_area_y, time='2017-07-21').plot(ax=ax, vmin=0.2, vmax=0.8, cmap='Greys_r')
 add_common_features(ax)
 
+
 ### Associated statistics...
 
 # Calculate percentage coverage of each surface type as measured by Sentinel-2 in the UAV area
@@ -70,16 +71,31 @@ for t in subset.time:
 	percs = 100 / counts.sum() * counts
 	print(t, percs)
 
+# Surface type distributions
+changed_20 = uav_alb_dists['2017-07-20'][uav_alb_dists['2017-07-20']['changes'] == -1]
+changed_21 = uav_alb_dists['2017-07-21'][uav_alb_dists['2017-07-21']['changes'] == -1]
+
+print('20th LA no change: ', uav_dists_perc['2017-07-20'][(changes == 0) & (uav_dists_perc['2017-07-20']['s2_class'] == 4)].mean())
+print('20th changed px:', uav_dists_perc['2017-07-20'][changes == -1].mean())
+print('21st LA no change: ', uav_dists_perc['2017-07-21'][changes == 0 & (uav_dists_perc['2017-07-21']['s2_class'] == 4)].mean())
+print('21st changed px:', uav_dists_perc['2017-07-21'][changes == -1].mean())
+
+
 
 
 ### Sub-S2-pixel albedo distributions
 fig = plt.figure(figsize=(4,6))
-gs = GridSpec(3,2, figure=fig)
+gs = GridSpec(4,2, figure=fig)
+
+# Boxenplots
+ax = fig.add_subplot(gs[0,0])
+
+
 
 xvals = np.arange(0,1,0.01)
 
 ## 07-20 CI
-ax = fig.add_subplot(gs[0,0])
+ax = fig.add_subplot(gs[1,0])
 for ix, row in uav_alb_dists['2017-07-20'].iterrows():
 	if row.s2_class == 3:
 		plt.plot(xvals, row.binned, alpha=0.5, color='#C6DBEF')
@@ -91,7 +107,7 @@ plt.tick_params(axis='x', bottom='off', top='off')
 plt.ylabel('CI % of S2 pixel')
 
 ## 07-20 LA
-ax = fig.add_subplot(gs[1,0])
+ax = fig.add_subplot(gs[2,0])
 for ix, row in uav_alb_dists['2017-07-20'].iterrows():
 	if row.s2_class == 4:
 		plt.plot(xvals, row.binned, alpha=0.5, color='#FDBB84')
@@ -102,7 +118,7 @@ plt.tick_params(axis='x', top='off')
 plt.ylabel('LA % of S2 pixel')
 
 ## 07-21 CI
-ax = fig.add_subplot(gs[0,1])
+ax = fig.add_subplot(gs[1,1])
 for ix, row in uav_alb_dists['2017-07-21'].iterrows():
 	if row.s2_class == 3:
 		plt.plot(xvals, row.binned, alpha=0.5, color='#C6DBEF')
@@ -113,7 +129,7 @@ plt.ylim(0,8.5)
 plt.tick_params(axis='x', bottom='off', top='off')
 
 ## 07-21 LA
-ax = fig.add_subplot(gs[1,1])
+ax = fig.add_subplot(gs[2,1])
 for ix, row in uav_alb_dists['2017-07-21'].iterrows():
 	if row.s2_class == 4:
 		plt.plot(xvals, row.binned, alpha=0.5, color='#FDBB84')
@@ -123,7 +139,7 @@ plt.ylim(0,8.5)
 plt.tick_params(axis='x', top='off')
 
 ## Changed pixels change in albedo distribution
-ax = fig.add_subplot(gs[2,:])
+ax = fig.add_subplot(gs[3,:])
 
 norm = mpl.colors.Normalize(vmin=0.2,vmax=0.6)
 # One curve per S2-pixel
