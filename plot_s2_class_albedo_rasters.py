@@ -168,7 +168,7 @@ cmap_plot = mpl.cm.YlGnBu_r
 cb1 = mpl.colorbar.ColorbarBase(ax, cmap=cmap_plot,
                                 norm=norm,
                                 orientation='horizontal')
-cb1.set_label('Mean UAV albedo')
+cb1.set_label('Mean UAS albedo')
 cb1.set_ticks(np.arange(0.2,0.7,0.1))
 
 sns.despine()

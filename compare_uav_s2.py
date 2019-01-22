@@ -337,7 +337,6 @@ consider t-tests
 # S2 - MODIS intercomparison
 #####
 
-s2_in_modis = s2_data.albedo.salem.roi(shape='/scratch/UAV/coincident_s6_modis_latlon.shp')
 
 # Convert MODIS coordinates
 modis_x = -190651
@@ -360,8 +359,11 @@ upx,upy = s2_proj(x,y)
 mdx,mdy = modis_proj(x,y)
 # plot(upx, upy)
 
-s2alb_in_modis.mean(dim=('x','y')).load()
-##2alb_in_modis.to_pandas().to_csv('/home/at15963/projects/uav/outputs/s2_alb_modispx.csv')
+
+s2_in_modis = s2_data.albedo.salem.roi(shape='/scratch/UAV/coincident_s6_modis_latlon.shp')
+#s2alb_in_modis.mean(dim=('x','y')).load()
+s2_in_modis_mean = s2_in_modis.mean(dim=('x','y'))
+s2_in_modis_mean.to_pandas().to_csv('/home/at15963/projects/uav/outputs/s2_alb_modispx.csv')
 
 s2_alb = s2_data.albedo.salem.roi(shape='/scratch/UAV/uav_2017_area.shp').mean(dim=('x','y'))
 #s2_alb.to_pandas().to_csv('/home/at15963/projects/uav/outputs/s2_alb_uavpx.csv')

@@ -25,7 +25,7 @@ lon = -49.38
 lon_ref = -45.
 summertime = 1
 slope = 5.
-aspect = 270.
+aspect = 240.
 elevation = 1073.
 roughness = 0.001 # 1 mm
 met_elevation = 1073.
@@ -46,7 +46,7 @@ for albedo in albedos:
 	SWR,LWR,SHF,LHF = ebm.calculate_seb(
 		lat, lon, lon_ref, 201, float(time), summertime,
 		slope, aspect, elevation, met_elevation, lapse,
-		578.0, 892, 0.0058, 4.89, albedo, roughness)
+		825, 888, 1.1, 8.1, albedo, roughness)
 
 	# Calculate melting
 	swmelt,lwmelt,shfmelt,lhfmelt,total = ebm.calculate_melt(SWR,LWR,SHF,LHF,
