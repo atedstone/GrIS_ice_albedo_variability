@@ -148,9 +148,12 @@ melt_amts = []
 k = 0
 for v in np.arange(0,1,0.01):
 	for c in np.arange(0,counts_20[k]):
-		melt_amts.append(total_melt_rates.loc[v] * 0.0001 * 20**2) 
+#		melt_amts.append(total_melt_rates.loc[v] * 0.0001 * 20**2) 
+		melt_amts.append(melt_rates['SWR_melt'].loc[v] * 0.0001 * 20**2) 
 	k += 1
 np.sum(melt_amts)
+
+melt_rates['SWR_melt'].loc[0.38] * 0.0001 * 20**2 * 1078
 
 total_melt_rates.loc[0.38] * 0.0001 * 20**2 * 1078
 
@@ -160,8 +163,11 @@ melt_amts = []
 k = 0
 for v in np.arange(0,1,0.01):
 	for c in np.arange(0,counts_21[k]):
-		melt_amts.append(total_melt_rates.loc[v] * 0.0001 * 20**2) 
+#		melt_amts.append(total_melt_rates.loc[v] * 0.0001 * 20**2) 
+		melt_amts.append(melt_rates['SWR_melt'].loc[v] * 0.0001 * 20**2) 
 	k += 1
 np.sum(melt_amts)
+
+melt_rates['SWR_melt'].loc[0.44] * 0.0001 * 20**2 * 1078
 
 total_melt_rates.loc[0.44] * 0.0001 * 20**2 * 1078

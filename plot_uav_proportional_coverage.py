@@ -27,15 +27,28 @@ classed = pd.DataFrame.from_dict(store, orient='index')
 classed = classed.drop(columns=-999)
 classed = classed.rename({0:'Unknown', 1:'Water', 2:'Snow', 3:'CI', 4:'LA', 5:'HA', 6:'CC'}, axis='columns')
 classed_perc = 100 / 16871728 * classed
-classed_perc = classed_perc.drop(columns=['Water'])
+classed_perc = classed_perc.drop(columns=['Water', 'Unknown'])
 
 sns.set_context('paper')
 sns.set_style("ticks")
 
-plt.figure()
-colors = ['#000000', '#B9B9B9', '#C6DBEF', '#FDBB84', '#B30000', '#762A83']
+plt.figure(figsize=(4,2.5))
+ax = plt.subplot()
+colors = ['#B9B9B9', '#C6DBEF', '#FDBB84', '#B30000', '#762A83']
 with sns.color_palette(colors):
-	classed_perc.plot(kind='bar',stacked=True)
+	ax = classed_perc.plot(kind='bar',stacked=True, legend=False, ax=ax)
 
 plt.ylabel('% coverage')
+
+xticks, _ = plt.xticks()
+plt.xticks(xticks, ['15 Jul', '20 Jul', '21 Jul', '22 Jul', '23 Jul', '24 Jul'])
+ax.tick_params(axis='x', labelrotation=0)
+
+plt.legend(loc=(1,0.5), frameon=False)
+
+
+sns.despine()
+
 plt.tight_layout()
+
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_uav_proportional_coverage_all.png', dpi=300)

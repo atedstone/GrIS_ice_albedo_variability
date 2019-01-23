@@ -232,6 +232,17 @@ class_counts_upe = uavhc_upe \
 
 
 plt.subplots_adjust(hspace=0.05)
+
+## North arrow
+ax = fig.add_axes([0.85,0.85,0.1,0.1])
+plt.annotate('N', (0.5,0.7), xytext=(0.5, 0), xycoords='axes fraction',
+  arrowprops=dict(arrowstyle='simple', color='black'), horizontalalignment='center')
+for axis in ['top','bottom','left','right']:
+  ax.spines[axis].set_linewidth(0)
+plt.yticks([])
+plt.xticks([])
+
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_upe_comparison.png', dpi=300)
 """
 To do:
 

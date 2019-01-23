@@ -19,6 +19,8 @@ demrd.projection = 'PROJCS["WGS 84 / UTM zone 23N",GEOGCS["WGS 84",DATUM["WGS_19
 slope = rd.TerrainAttribute(demrd, attrib='slope_degrees')
 print('Mean Slope S6: %s' %np.nanmean(np.where(slope > 0, slope, np.nan)))
 
+aspect = rd.TerrainAttribute(demrd, attrib='aspect')
+print('Mean Aspect S6: %s' %np.nanmean(np.where(aspect > 0, aspect, np.nan)))
 
 blur99_upe = xr.open_dataset('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_dem_blur399.nc')
 blur99_upe = add_srs(blur99_upe, 'epsg:32622')

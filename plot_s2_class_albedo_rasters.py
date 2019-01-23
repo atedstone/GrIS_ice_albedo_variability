@@ -13,7 +13,7 @@ import cartopy as cp
 from matplotlib.gridspec import GridSpec
 #import geopandas as gpd
 
-sns.set_context('paper')
+sns.set_context('paper', rc={"font.size":8,"axes.titlesize":8,"axes.labelsize":8,"legend.fontsize":8})
 sns.set_style('ticks')
 
 #from load_s2_data import *
@@ -28,39 +28,79 @@ modis_area_y = slice(7441243, 7440595)
 ### Rasters
 def add_common_features(ax):
 	ax.add_geometries(cp.io.shapereader.Reader('/scratch/UAV/coincident_s6_modis_latlon.shp').geometries(),
-                  cp.crs.PlateCarree(),
-                  facecolor='none', color='white')
+		cp.crs.PlateCarree(),
+		facecolor='none', edgecolor='white')
 
 	ax.add_geometries(cp.io.shapereader.Reader('/scratch/UAV/uav_2017_area.shp').geometries(),
-                  cp.crs.PlateCarree(),
-                  facecolor='none', color='black')
+		cp.crs.PlateCarree(),
+		facecolor='none', edgecolor='black')
 
 	ax.set_title('')
+	plt.yticks([])
+	plt.xticks([])
+	plt.ylabel('')
+	plt.xlabel('')
+	for axis in ['top','bottom','left','right']:
+		ax.spines[axis].set_linewidth(0)
 
-plt.figure()
+fig = plt.figure(figsize=(6,4))
 
 #map_proj = cp.crs.Stereographic(central_latitude=71, central_longitude=-40)
 map_proj = cp.crs.UTM(zone=22)
 
 # 20 July class
 ax = plt.subplot(221, projection=map_proj)
-s2_data.classified.sel(x=modis_area_x, y=modis_area_y, time='2017-07-20').plot(ax=ax, cmap=cmap, vmin=0, vmax=6, add_colorbar=False)
+s2_data.classified.sel(x=modis_area_x, y=modis_area_y, time='2017-07-20').plot.imshow(ax=ax, cmap=cmap, vmin=0, vmax=6, add_colorbar=False)
 add_common_features(ax)
+ax.annotate('(a)', fontsize=8, fontweight='bold', xy=(0.03,0.95), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top')
 
 # 21 July class
 ax = plt.subplot(222, projection=map_proj)
-s2_data.classified.sel(x=modis_area_x, y=modis_area_y, time='2017-07-21').plot(ax=ax, cmap=cmap, vmin=0, vmax=6)
+s2_data.classified.sel(x=modis_area_x, y=modis_area_y, time='2017-07-21').plot.imshow(ax=ax, cmap=cmap, vmin=0, vmax=6, add_colorbar=False)
 add_common_features(ax)
+ax.annotate('(b)', fontsize=8, fontweight='bold', xy=(0.03,0.95), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top')
 
 # 20 July albedo
 ax = plt.subplot(223, projection=map_proj)
-s2_data.albedo.sel(x=modis_area_x, y=modis_area_y, time='2017-07-20').plot(ax=ax, vmin=0.2, vmax=0.8, cmap='Greys_r', add_colorbar=False)
+s2_data.albedo.sel(x=modis_area_x, y=modis_area_y, time='2017-07-20').plot.imshow(ax=ax, vmin=0.2, vmax=0.6, cmap='Greys_r', add_colorbar=False)
 add_common_features(ax)
+ax.annotate('(c)', fontsize=8, fontweight='bold', xy=(0.03,0.95), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top')
 
 # 21 July class
 ax = plt.subplot(224, projection=map_proj)
-s2_data.albedo.sel(x=modis_area_x, y=modis_area_y, time='2017-07-21').plot(ax=ax, vmin=0.2, vmax=0.8, cmap='Greys_r')
+s2_data.albedo.sel(x=modis_area_x, y=modis_area_y, time='2017-07-21').plot.imshow(ax=ax, vmin=0.2, vmax=0.6, cmap='Greys_r', add_colorbar=False)
 add_common_features(ax)
+ax.annotate('(d)', fontsize=8, fontweight='bold', xy=(0.03,0.95), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top')
+
+
+plt.tight_layout()
+plt.subplots_adjust(right=0.85, hspace=-0.4)
+
+
+## Classes colourbar
+ax_clcb = fig.add_axes([0.87, 0.60, 0.03, 0.15])
+cmap_plot = mpl.colors.ListedColormap(['#C6DBEF', '#FDBB84'])
+cmap_norm = mpl.colors.Normalize(vmin=0,vmax=2)
+cb1 = mpl.colorbar.ColorbarBase(ax_clcb, cmap=cmap_plot, norm=cmap_norm,
+                                orientation='vertical')
+cb1.set_ticks([0.5,1.5])
+cb1.set_ticklabels(['CI', 'LA'])
+
+## Albedo colourbar
+ax_alcb = fig.add_axes([0.87, 0.23, 0.03, 0.2])
+cmap_plot = mpl.cm.Greys_r
+norm_plot = mpl.colors.Normalize(vmin=0.2,vmax=0.6)
+cb1 = mpl.colorbar.ColorbarBase(ax_alcb, cmap=cmap_plot, norm=norm_plot,
+                                orientation='vertical')
+cb1.set_label('S2 albedo')
+cb1.set_ticks(np.arange(0.2,0.7,0.1), [0.2,0.3,0.4,0.5,0.6])
+
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_class_albedo_rasters.png', dpi=300)
+
 
 
 ### Associated statistics...
