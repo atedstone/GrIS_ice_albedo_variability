@@ -48,6 +48,7 @@ plt.tick_params(axis='y', left=False)
 
 plt.tight_layout()
 
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_modis_albedo_dist.png', dpi=300)
 
 ## Associated melting statistics
 
