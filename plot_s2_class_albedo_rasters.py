@@ -99,7 +99,7 @@ cb1 = mpl.colorbar.ColorbarBase(ax_alcb, cmap=cmap_plot, norm=norm_plot,
 cb1.set_label('S2 albedo')
 cb1.set_ticks(np.arange(0.2,0.7,0.1), [0.2,0.3,0.4,0.5,0.6])
 
-plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_class_albedo_rasters.png', dpi=300)
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_class_albedo_rasters_clf20190130_171930.png', dpi=300)
 
 
 
@@ -186,10 +186,10 @@ for ix,row in uav_alb_change.iterrows():
 	#alb_colors = alb_colors + 0.5
 	bins_here = np.where(row.binned > 0, row.binned, np.nan)
 	#plt.scatter(np.arange(-100,100,1),row.binned, alpha=0.4, c=cm.YlGnBu_r(row.alb_in_bin), edgecolor='none')
-	plt.scatter(np.arange(-1,1,0.01),row.binned, alpha=0.4, c=row.alb_in_bin, cmap='YlGnBu_r', norm=norm,edgecolor='none')
+	plt.scatter(np.arange(-1,1,0.02),row.binned, alpha=0.4, c=row.alb_in_bin, cmap='YlGnBu_r', norm=norm,edgecolor='none')
 	#(row.alb_in_bin + 1) / 2
 
-plt.plot(np.arange(-1,1,0.01), uav_alb_change.binned.mean(), linewidth=1, color='black')
+plt.plot(np.arange(-1,1,0.02), uav_alb_change.binned.mean(), linewidth=1, color='black')
 plt.xlim(-0.2,0.3)
 plt.xlabel('Albedo change')
 plt.tick_params(axis='x', top='off')
@@ -208,4 +208,4 @@ cb1.set_ticks(np.arange(0.2,0.7,0.1))
 
 sns.despine()
 
-plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_subpixel_distributions.png', dpi=300)
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_subpixel_distributions_clf20190130_171930.png', dpi=300)

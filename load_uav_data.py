@@ -26,7 +26,9 @@ uav_times = [dt.datetime(2017,7,15),
 	]
 
 # UAV classified images 
-uav_class = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*classified*epsg32622.nc',
+pth = '/scratch/UAV/L3/uav_2017*class*clf20190130_171930.nc'
+#'/scratch/UAV/uav2017_commongrid_bandcorrect/*classified*epsg32622.nc'
+uav_class = xr.open_mfdataset(pth,
 	concat_dim='time', chunks={'y':2000, 'x':2000})
 # Set up the time coordinate.
 uav_class['time'] = uav_times 

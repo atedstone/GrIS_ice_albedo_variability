@@ -43,18 +43,19 @@ ax = fig.add_subplot(gs[1,1])
 
 detrended = xr.open_dataset('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_dem_blur399_detr.nc',
 	chunks={'x':1000, 'y':1000})
-classified = xr.open_dataset('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_refl_class.nc',
+classified = xr.open_dataset('/scratch/UAV/L3/uav_20180724_PM_refl_class_clf20190130_171930.nc',
 	chunks={'x':1000, 'y':1000}) 
 classified['x'] = detrended.x
 classified['y'] = detrended.y
 
-names = ['Water', 'Snow', 'CI', 'LA', 'HA', 'CC']
 
 just_class = classified.classified.stack(dim=('x','y')).to_pandas()
 just_elev = detrended.detrended.stack(dim=('x','y')).to_pandas()
 
 combo = pd.concat((just_class,just_elev), axis=1).dropna()
 combo.columns = ['Surface Type', 'Detrended Elevation (m)']
+combo = combo[combo['Surface Type'] > 0]
 sns.boxenplot(data=combo, x='Surface Type', y='Detrended Elevation (m)', ax=ax) 
 ticks, labels = plt.xticks()
+names = ['Water', 'Snow', 'CI', 'LA', 'HA', 'CC']
 plt.xticks(ticks, names)

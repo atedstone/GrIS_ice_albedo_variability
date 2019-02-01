@@ -23,7 +23,7 @@ gs = GridSpec(5,2, figure=fig)
 
 ## S6 Alb
 ax = plt.subplot(gs[0:2,0])
-s6_alb = georaster.SingleBandRaster('/scratch/UAV/uav2017_commongrid_bandcorrect/uav_20170721_refl_5cm_commongrid_albedo.tif_epsg32622.tif', downsampl=4)
+s6_alb = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20170721_refl_5cm_commongrid.tif_epsg32622_albedo_clf20190130_171930.tif', downsampl=4)
 s6_alb.r = np.where(s6_alb.r < 0, np.nan, s6_alb.r)
 plt.imshow(s6_alb.r, vmin=0, vmax=1, cmap='Greys_r')
 #uav_alb.Band1.sel(time='2017-07-21').squeeze().plot.imshow(vmin=0, vmax=1, cmap='Greys_r', add_colorbar=False)
@@ -38,9 +38,9 @@ ax.annotate('(a)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes 
 
 ## UPE Alb
 ax = plt.subplot(gs[0:2,1])
-upe_alb_plot = georaster.SingleBandRaster('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_refl_albedo.tif', downsampl=3)
-upe_alb = xr.open_rasterio('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_refl_albedo.tif')
-upe_alb.attrs['pyproj_srs'] = 'epsg:32622'
+upe_alb_plot = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20180724_PM_refl_albedo_clf20190130_171930.tif', downsampl=3)
+#upe_alb = xr.open_rasterio('/scratch/UAV/L3/uav_20180724_PM_refl_cla_clf_20190130_171930.tif')
+#upe_alb.attrs['pyproj_srs'] = 'epsg:32622'
 upe_alb_plot.r = np.where(upe_alb_plot.r < 0, np.nan, upe_alb_plot.r)
 plt.imshow(upe_alb_plot.r, vmin=0, vmax=1, cmap='Greys_r')
 #upe_alb.squeeze().plot.imshow(vmin=0, vmax=1, cmap='Greys_r', add_colorbar=False)
@@ -70,8 +70,8 @@ ax = plt.subplot(gs[2:4,0])
 categories = ['Unknown', 'Water', 'Snow', 'CI', 'LA', 'HA', 'CC']
 vals = [0, 1, 2, 3, 4, 5, 6]
 cmap = mpl.colors.ListedColormap(['#000000','#08519C','white', '#C6DBEF', '#FDBB84', '#B30000', '#762A83'])
-s6_class = georaster.SingleBandRaster('/scratch/UAV/uav2017_commongrid_bandcorrect/uav_20170721_refl_5cm_commongrid_classified.tif_epsg32622.tif', downsampl=4)
-s6_class.r = np.where(s6_class.r < 0, np.nan, s6_class.r)
+s6_class = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20170721_refl_5cm_commongrid.tif_epsg32622_cla_clf_20190130_171930.tif', downsampl=4)
+s6_class.r = np.where(s6_class.r <= 0, np.nan, s6_class.r)
 plt.imshow(s6_class.r, cmap=cmap, vmin=0, vmax=7)
 #uav_class.Band1.sel(time='2017-07-21').squeeze().plot.imshow(cmap=cmap, vmin=0, vmax=7, add_colorbar=False)
 plt.xticks([])
@@ -85,11 +85,14 @@ ax.annotate('(c)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes 
 
 ## UPE Class
 ax = plt.subplot(gs[2:4,1])
-upe_class = xr.open_dataset('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_refl_class.nc',
+upe_class = xr.open_dataset('/scratch/UAV/L3/uav_20180724_PM_refl_class_clf20190130_171930.nc',
 	chunks={'x':1000, 'y':1000}) 
-upe_class_plot = georaster.SingleBandRaster('/scratch/UAV/photoscan_outputs_2018/uav_20180724_PM_refl_classified.tif')
+upe_class.classified.attrs['pyproj_srs'] = 'epsg:32622'
+upe_class.albedo.attrs['pyproj_srs'] = 'epsg:32622'
+upe_class_plot = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20180724_PM_refl_cla_clf_20190130_171930.tif')
 upe_class.classified.attrs['pyproj_srs'] = 'epsg:32622'
 #upe_class.classified.plot(cmap=cmap, vmin=0, vmax=7, add_colorbar=False)
+upe_class_plot.r = np.where(upe_class_plot.r <= 0, np.nan, upe_class_plot.r)
 plt.imshow(upe_class_plot.r, vmin=0, vmax=7, cmap=cmap)
 plt.xticks([])
 plt.yticks([])
@@ -102,12 +105,12 @@ ax.annotate('(d)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes 
 
 ## Classes colourbar
 ax_clcb = fig.add_axes([0.41, 0.33, 0.18, 0.01])
-cmap_plot = mpl.colors.ListedColormap(['white', '#C6DBEF', '#FDBB84', '#B30000'])
-cmap_norm = mpl.colors.Normalize(vmin=0,vmax=4)
+cmap_plot = mpl.colors.ListedColormap(['white', '#C6DBEF', '#FDBB84', '#B30000', '#08519C'])
+cmap_norm = mpl.colors.Normalize(vmin=0,vmax=5)
 cb1 = mpl.colorbar.ColorbarBase(ax_clcb, cmap=cmap_plot, norm=cmap_norm,
                                 orientation='horizontal')
-cb1.set_ticks([0.5,1.5,2.5,3.5])
-cb1.set_ticklabels(['Snow', 'CI', 'LA', 'HA'])
+cb1.set_ticks([0.5,1.5,2.5,3.5,4.5])
+cb1.set_ticklabels(['Snow', 'CI', 'LA', 'HA', 'Water'])
 sns.despine()
 
 ## Middle: context map
@@ -131,8 +134,8 @@ ax = plt.subplot(gs[4,0])
 ytick_locs = np.array([0, 5e5, 1e6, 1.5e6])
 ytick_labels = (ytick_locs * (0.05**2)).astype(int) #sq m
 
-uavha = uav_alb.Band1.sel(time='2017-07-21').salem.roi(shape=uav_poly)
-uavhc = uav_class.Band1.sel(time='2017-07-21').salem.roi(shape=uav_poly)
+uavha = uav_class.albedo.sel(time='2017-07-21').salem.roi(shape=uav_poly)
+uavhc = uav_class.classified.sel(time='2017-07-21').salem.roi(shape=uav_poly)
 
 # uavha.where(uavhc == 5) \
 # 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='High Biomass', color='#B30000')
@@ -144,7 +147,7 @@ uavhc = uav_class.Band1.sel(time='2017-07-21').salem.roi(shape=uav_poly)
 # 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='Snow', color='#B9B9B9')
 
 cmap_hist = mpl.colors.ListedColormap(['#C6DBEF','#B30000','#FDBB84','#B9B9B9'])
-color_dict = {'Snow':'#B9B9B9', 'CI':'#4292C6', 'LA':'#FDBB84', 'HA':'#B30000'}
+color_dict = {'Snow':'#B9B9B9', 'CI':'#4292C6', 'LA':'#FDBB84', 'HA':'#B30000', 'Water':'#08519C'}
 
 counts2, bins = np.histogram(uavha.where(uavhc == 2), bins=50, range=(0,1))
 counts3, bins = np.histogram(uavha.where(uavhc == 3), bins=50, range=(0,1))
@@ -179,7 +182,7 @@ class_counts_s6 = uavhc.groupby(uavhc).count().load().to_pandas()
 ## UPE alb/class histogram
 ax = plt.subplot(gs[4,1])
 
-uavha_upe = upe_alb.salem.roi(shape=uav_poly_upe)
+uavha_upe = upe_class.albedo.salem.roi(shape=uav_poly_upe)
 uavhc_upe = upe_class.classified.salem.roi(shape=uav_poly_upe)
 uavha_upe['x'] = uavhc_upe.x
 uavha_upe['y'] = uavhc_upe.y
@@ -193,6 +196,7 @@ uavha_upe['y'] = uavhc_upe.y
 # uavha_upe.where(uavhc_upe == 5) \
 # 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='High Biomass', color='#B30000')
 
+counts1, bins = np.histogram(uavha_upe.where(uavhc_upe == 1), bins=50, range=(0,1))
 counts2, bins = np.histogram(uavha_upe.where(uavhc_upe == 2), bins=50, range=(0,1))
 counts3, bins = np.histogram(uavha_upe.where(uavhc_upe == 3), bins=50, range=(0,1))
 counts4, bins = np.histogram(uavha_upe.where(uavhc_upe == 4), bins=50, range=(0,1))
@@ -203,7 +207,7 @@ counts5, bins = np.histogram(uavha_upe.where(uavhc_upe == 5), bins=50, range=(0,
 # counts1, bins = np.histogram(uavha_upe.where(uavhc_upe == 1), bins=50, range=(0,1))
 # sum(counts1) * (0.05**2)
 
-counts_all_upe = pd.DataFrame({'Snow':counts2, 'CI':counts3, 'LA':counts4, 'HA':counts5}, index=bins[:-1])
+counts_all_upe = pd.DataFrame({'Snow':counts2, 'CI':counts3, 'LA':counts4, 'HA':counts5, 'Water':counts1}, index=bins[:-1])
 
 counts_all_upe = counts_all_upe * (0.05**2)
 
@@ -242,7 +246,7 @@ for axis in ['top','bottom','left','right']:
 plt.yticks([])
 plt.xticks([])
 
-plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_upe_comparison.png', dpi=300)
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_upe_comparison_clf20190130_171930.png', dpi=300)
 """
 To do:
 

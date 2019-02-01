@@ -41,7 +41,7 @@ for time in s2_times:
 	
 	for ix, value in subsetstack.iteritems():
 		x,y = ix
-		this_pixel = uav_class.Band1.sel(time=time, x=slice(x-10,x+10), y=slice(y-10,y+10))
+		this_pixel = uav_class.classified.sel(time=time, x=slice(x-10,x+10), y=slice(y-10,y+10))
 		values, bins = np.histogram(this_pixel, range=(0,7), bins=7)
 		new_store[(x,y)] = values
 
@@ -91,17 +91,17 @@ for time in s2_times:
 # ~7% albedo increase from 20th to 21st in the S2 pixels which changed class
 
 # At the UAV level, did the albedo of all classes change, or just certain classes?
-#figure(),sns.boxplot(data=uav_alb.Band1.sel(time='2017-07-20').salem.roi(shape=uav_poly).stack(dim=('x','y')).to_pandas().dropna()) 
+#figure(),sns.boxplot(data=uav_class.albedo.sel(time='2017-07-20').salem.roi(shape=uav_poly).stack(dim=('x','y')).to_pandas().dropna()) 
 
 
 # Did HA and/or LA areas get darker, hypothesis being lightening of adjacent patches due to 
 # material transport?
-uav_alb.Band1.where(uav_class.Band1 == 5).mean(dim=('x','y')).load() 
+uav_class.albedo.where(uav_class.classified == 5).mean(dim=('x','y')).load() 
 # Results: [0.253331, 0.242275, 0.247606, 0.256404, 0.26454 , 0.273798]
 # So no, there was actually a very slight albedo increase 20th-->21st.
 
 # Do the same for LA
-uav_alb.Band1.where(uav_class.Band1 == 4).mean(dim=('x','y')).load()
+uav_class.albedo.where(uav_class.classified == 4).mean(dim=('x','y')).load()
 # [0.402429, 0.345945, 0.407268, 0.414105, 0.408986, 0.324212]
 # Much larger change (5%) than in HA case.
 """
@@ -114,7 +114,7 @@ to WC growth.
 """
 
 # CI
-uav_alb.Band1.where(uav_class.Band1 == 3).mean(dim=('x','y')).load()
+uav_class.albedo.where(uav_class.classified == 3).mean(dim=('x','y')).load()
 # [0.561625, 0.530416, 0.547968, 0.549942, 0.538176, 0.466762]
 # No systematic change over the whole area - so shift is in LA only really.
 # Perhaps this isn't a surprise? - it's the 'middle' category.
@@ -178,7 +178,7 @@ for time in s2_times:
 	
 	for ix, value in subsetstack.iteritems():
 		x,y = ix
-		this_pixel = uav_alb.Band1.sel(time=time, x=slice(x-10,x+10), y=slice(y-10,y+10)) \
+		this_pixel = uav_class.albedo.sel(time=time, x=slice(x-10,x+10), y=slice(y-10,y+10)) \
 			.stack(dim=('x','y')).to_pandas()
 
 		px_alb = this_pixel.mean()
@@ -187,7 +187,7 @@ for time in s2_times:
 
 		# jb,jbpv,skew,kurtosis = sm.stats.stattools.jarque_bera(this_pixel)
 		# new_store[(x,y)] = dict(jb=jb, jbpv=jbpv)
-		values, bins = np.histogram(this_pixel, range=(0,1), bins=100)
+		values, bins = np.histogram(this_pixel, range=(0,1), bins=50)
 		values = 100 / np.sum(values) * values
 		new_store[(x,y)] = dict(binned=values, uav_alb=px_alb, kurtosis=kurtosis, skewness=skewness)
 
@@ -257,9 +257,9 @@ uav_alb_dists['2017-07-21']['changes'] = changes
 uav_alb_dists_c = pd.concat(uav_alb_dists) 
 #figure(),uav_alb_dists_c.plot(kind='scatter',x='uav_alb',y='kurtosis') 
 
-uav_alb_dists_c['uav_alb_bin'] = pd.cut(uav_alb_dists_c.uav_alb,np.arange(0,1,0.01))
+uav_alb_dists_c['uav_alb_bin'] = pd.cut(uav_alb_dists_c.uav_alb,np.arange(0,1,0.02))
 binned_dists = uav_alb_dists_c.binned.groupby(uav_alb_dists_c.uav_alb_bin).apply(np.mean)
-binned_dists.index = np.arange(0,0.99,0.01)
+binned_dists.index = np.arange(0,1,0.02)
 
 # plt.figure()
 # for ix, row in binned_dists.iteritems():
@@ -274,20 +274,20 @@ new_store = {}
 for ix, value in changes.iteritems():
 	if value == -1:
 		x,y = ix
-		this_pixel21 = uav_alb.Band1.sel(time='2017-07-21', x=slice(x-10,x+10), y=slice(y-10,y+10)) \
+		this_pixel21 = uav_class.albedo.sel(time='2017-07-21', x=slice(x-10,x+10), y=slice(y-10,y+10)) \
 			.stack(dim=('x','y')).to_pandas()
-		this_pixel20 = uav_alb.Band1.sel(time='2017-07-20', x=slice(x-10,x+10), y=slice(y-10,y+10)) \
+		this_pixel20 = uav_class.albedo.sel(time='2017-07-20', x=slice(x-10,x+10), y=slice(y-10,y+10)) \
 			.stack(dim=('x','y')).to_pandas()
 		this_pixel_change = this_pixel21 - this_pixel20
 
-		values, bins = np.histogram(this_pixel_change, range=(-1,1), bins=200)
+		values, bins = np.histogram(this_pixel_change, range=(-1,1), bins=100)
 		values = 100 / np.sum(values) * values
 		# I want the albedo which corresponds to the bin...
 		# Its a group-by operation
 		combo = pd.concat({'alb21':this_pixel21, 'change':this_pixel_change}, axis=1)
-		combo['change_binned'] = pd.cut(combo['change'],np.arange(-1,1.01,0.01))
+		combo['change_binned'] = pd.cut(combo['change'],np.arange(-1,1.02,0.02))
 		binalbs = combo.alb21.groupby(combo.change_binned).mean()
-		binalbs.index = np.arange(-1,1.,0.01)
+		binalbs.index = np.arange(-1,1.,0.02)
 		
 		new_store[(x,y)] = dict(binned=values, alb_in_bin=binalbs.values)
 
@@ -306,7 +306,7 @@ uav_alb_change = pd.DataFrame.from_dict(new_store, orient='index')
 # 	#(row.alb_in_bin + 1) / 2
 # plt.plot(np.arange(-100,100,1), uav_alb_change.binned.mean(), linewidth=3, color='black')
 
-uav_alb_c_mean = pd.Series(uav_alb_change.binned.mean(),index=np.arange(-100,100,1))
+uav_alb_c_mean = pd.Series(uav_alb_change.binned.mean(),index=np.arange(-100,100,2))
 uav_alb_c_mean.loc[-100:-1].sum()
 
 # Those UAV pixels which got darker - what class were they/did they change class?

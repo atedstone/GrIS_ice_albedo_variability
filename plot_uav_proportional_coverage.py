@@ -11,7 +11,7 @@ import seaborn as sns
 
 from load_uav_data import *
 
-uav_class_common = uav_class.Band1.salem.roi(shape=uav_poly, other=-999)
+uav_class_common = uav_class.classified.salem.roi(shape=uav_poly, other=-999)
 
 store = {}
 for time in uav_class_common.time: # ['2017-07-20', '2017-07-21']:
@@ -27,14 +27,14 @@ classed = pd.DataFrame.from_dict(store, orient='index')
 classed = classed.drop(columns=-999)
 classed = classed.rename({0:'Unknown', 1:'Water', 2:'Snow', 3:'CI', 4:'LA', 5:'HA', 6:'CC'}, axis='columns')
 classed_perc = 100 / 16871728 * classed
-classed_perc = classed_perc.drop(columns=['Water', 'Unknown'])
+classed_perc = classed_perc.drop(columns=['Unknown'])
 
 sns.set_context('paper')
 sns.set_style("ticks")
 
 plt.figure(figsize=(4,2.5))
 ax = plt.subplot()
-colors = ['#B9B9B9', '#C6DBEF', '#FDBB84', '#B30000', '#762A83']
+colors = ['darkblue', '#B9B9B9', '#C6DBEF', '#FDBB84', '#B30000', '#762A83']
 with sns.color_palette(colors):
 	ax = classed_perc.plot(kind='bar',stacked=True, legend=False, ax=ax)
 
@@ -51,4 +51,4 @@ sns.despine()
 
 plt.tight_layout()
 
-plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_uav_proportional_coverage_all.png', dpi=300)
+#plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_uav_proportional_coverage_all.png', dpi=300)
