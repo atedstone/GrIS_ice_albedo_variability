@@ -44,11 +44,13 @@ xticks, _ = plt.xticks()
 plt.xticks(xticks, ['15 Jul', '20 Jul', '21 Jul', '22 Jul', '23 Jul', '24 Jul'])
 ax.tick_params(axis='x', labelrotation=0)
 
-plt.legend(loc=(1,0.5), frameon=False)
+plt.legend(loc=(1,0.45), frameon=False)
+
+plt.axvline(xticks[1] - float(xticks[1]-xticks[0])/2, linestyle='--', color='grey', linewidth=0.5)
 
 
 sns.despine()
 
 plt.tight_layout()
 
-#plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_uav_proportional_coverage_all.png', dpi=300)
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_uav_proportional_coverage_all_clf20190130_171930.png', dpi=300)
