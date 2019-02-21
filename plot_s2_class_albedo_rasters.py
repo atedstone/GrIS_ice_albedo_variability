@@ -186,13 +186,15 @@ for ix,row in uav_alb_change.iterrows():
 	#alb_colors = alb_colors + 0.5
 	bins_here = np.where(row.binned > 0, row.binned, np.nan)
 	#plt.scatter(np.arange(-100,100,1),row.binned, alpha=0.4, c=cm.YlGnBu_r(row.alb_in_bin), edgecolor='none')
-	plt.scatter(np.arange(-1,1,0.02),row.binned, alpha=0.4, c=row.alb_in_bin, cmap='YlGnBu_r', norm=norm,edgecolor='none')
+	plt.plot(np.arange(-1,0.99,0.01),row.binned[:-1], alpha=0.4, color='gray', linewidth=0.5)
+	plt.scatter(np.arange(-1,0.99,0.01),row.binned[:-1], alpha=0.4, c=row.alb_in_bin, cmap='YlGnBu_r', norm=norm,edgecolor='none')
 	#(row.alb_in_bin + 1) / 2
 
-plt.plot(np.arange(-1,1,0.02), uav_alb_change.binned.mean(), linewidth=1, color='black')
+plt.plot(np.arange(-1,1,0.01), uav_alb_change.binned.mean(), linewidth=1, color='black')
 plt.xlim(-0.2,0.3)
 plt.xlabel('Albedo change')
 plt.tick_params(axis='x', top='off')
+plt.ylabel('% area of S2 pixel')
 
 plt.subplots_adjust(bottom=0.19)
 
