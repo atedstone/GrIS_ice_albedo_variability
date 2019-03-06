@@ -31,6 +31,8 @@ plt.title('20 July')
 plt.ylabel('No. S2 pixels')
 plt.xlabel('Albedo')
 ax.spines['left'].set_position(('outward', 10))
+ax.annotate('(a)', fontsize=8, fontweight='bold', xy=(0.03,0.95), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top')
 
 ax2 = plt.subplot(122)
 s2_in_modis.sel(time='2017-07-21').plot.hist(bins=50,range=(0,1), ax=ax2, 
@@ -40,6 +42,8 @@ plt.xlim(0.2, 0.6)
 plt.title('21 July')
 plt.xlabel('Albedo')
 plt.yticks([])
+ax2.annotate('(b)', fontsize=8, fontweight='bold', xy=(0.03,0.95), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top')
 
 sns.despine()
 
@@ -48,7 +52,23 @@ plt.tick_params(axis='y', left=False)
 
 plt.tight_layout()
 
-plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_modis_albedo_dist.png', dpi=300)
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_modis_albedo_dist.pdf', dpi=300)
+
+
+## Sub-MODIS coverage stats
+s2_in_modis
+
+modis_px = salem.read_shapefile('/scratch/UAV/coincident_s6_modis_latlon.shp')
+for px in [0,1]:
+	print(modis_px.loc[px].geometry)
+	px_data = s2_data.classified.salem.roi(geometry=modis_px.loc[px].geometry, crs=modis_px.crs) 
+	for t in px1.time:
+		counts = px_data.sel(time=t).groupby(px_data.sel(time=t)).count().load()
+		percs = 100 / counts.sum() * counts
+		print(t, percs)
+
+
+
 
 ## Associated melting statistics
 

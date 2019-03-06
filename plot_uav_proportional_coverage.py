@@ -34,7 +34,7 @@ sns.set_style("ticks")
 
 plt.figure(figsize=(4,2.5))
 ax = plt.subplot()
-colors = ['darkblue', '#B9B9B9', '#C6DBEF', '#FDBB84', '#B30000', '#762A83']
+colors = ['#08519C', '#B9B9B9', '#4292C6', '#FDBB84', '#B30000', '#762A83']
 with sns.color_palette(colors):
 	ax = classed_perc.plot(kind='bar',stacked=True, legend=False, ax=ax)
 
@@ -54,3 +54,5 @@ sns.despine()
 plt.tight_layout()
 
 plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_uav_proportional_coverage_all_clf20190130_171930.png', dpi=300)
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_uav_proportional_coverage_all_clf20190130_171930.pdf', dpi=300)
+classed_perc.to_csv('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_uav_proportional_coverage_all_clf20190130_171930_percentages.csv')

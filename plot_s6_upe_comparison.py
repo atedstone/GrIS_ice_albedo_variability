@@ -16,14 +16,15 @@ from matplotlib.gridspec import GridSpec
 from load_uav_data import *
 
 sns.set_style("ticks")
-sns.set_context('paper', rc={"font.size":8,"axes.titlesize":8,"axes.labelsize":8,"legend.fontsize":8})
+sns.set_context('paper', rc={"font.size":8,"axes.titlesize":8,"axes.labelsize":8,"legend.fontsize":8,
+  "xtick.labelsize":8, "ytick.labelsize":8})
 
 fig = plt.figure(figsize=(6.5, 7))
 gs = GridSpec(5,2, figure=fig)
 
 ## S6 Alb
 ax = plt.subplot(gs[0:2,0])
-s6_alb = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20170721_refl_5cm_commongrid.tif_epsg32622_albedo_clf20190130_171930.tif', downsampl=4)
+s6_alb = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20170721_refl_5cm_commongrid_epsg32622_bilinear_albedo_clf20190130_171930.tif', downsampl=4)
 s6_alb.r = np.where(s6_alb.r < 0, np.nan, s6_alb.r)
 plt.imshow(s6_alb.r, vmin=0, vmax=1, cmap='Greys_r')
 #uav_alb.Band1.sel(time='2017-07-21').squeeze().plot.imshow(vmin=0, vmax=1, cmap='Greys_r', add_colorbar=False)
@@ -42,7 +43,7 @@ upe_alb_plot = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20180724_PM_refl_
 #upe_alb = xr.open_rasterio('/scratch/UAV/L3/uav_20180724_PM_refl_cla_clf_20190130_171930.tif')
 #upe_alb.attrs['pyproj_srs'] = 'epsg:32622'
 upe_alb_plot.r = np.where(upe_alb_plot.r < 0, np.nan, upe_alb_plot.r)
-plt.imshow(upe_alb_plot.r, vmin=0, vmax=1, cmap='Greys_r')
+plt.imshow(upe_alb_plot.r, extent=upe_alb_plot.extent, vmin=0, vmax=1, cmap='Greys_r')
 #upe_alb.squeeze().plot.imshow(vmin=0, vmax=1, cmap='Greys_r', add_colorbar=False)
 plt.xticks([])
 plt.yticks([])
@@ -52,6 +53,13 @@ plt.ylabel('')
 plt.axis('off')
 ax.annotate('(b)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
+
+# Scale bar for images
+scale_bar_x = [416100, 416100+50]
+scale_bar_y = [8088500,8088500]
+plt.plot(scale_bar_x, scale_bar_y, linewidth=3, color='black', solid_capstyle='butt')
+ax.annotate('50 m', fontsize=8, xy=(scale_bar_x[1]-25,scale_bar_y[0]-25),
+           horizontalalignment='center', verticalalignment='bottom', color='black')
 
 ## Albedo colourbar
 ax_alcb = fig.add_axes([0.41, 0.83, 0.18, 0.01])
@@ -63,14 +71,13 @@ cb1.set_ticks(np.arange(0.0,1.1,0.2), [0,0.2,0.4,0.6,0.8,1])
 sns.despine()
 
 
-
 ## S6 Class
 ax = plt.subplot(gs[2:4,0])
 # Create a categorical colourmap.
 categories = ['Unknown', 'Water', 'Snow', 'CI', 'LA', 'HA', 'CC']
 vals = [0, 1, 2, 3, 4, 5, 6]
 cmap = mpl.colors.ListedColormap(['#000000','#08519C','white', '#C6DBEF', '#FDBB84', '#B30000', '#762A83'])
-s6_class = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20170721_refl_5cm_commongrid.tif_epsg32622_cla_clf_20190130_171930.tif', downsampl=4)
+s6_class = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20170721_refl_5cm_commongrid_epsg32622_bilinear_cla_clf20190130_171930.tif', downsampl=4)
 s6_class.r = np.where(s6_class.r <= 0, np.nan, s6_class.r)
 plt.imshow(s6_class.r, cmap=cmap, vmin=0, vmax=7)
 #uav_class.Band1.sel(time='2017-07-21').squeeze().plot.imshow(cmap=cmap, vmin=0, vmax=7, add_colorbar=False)
@@ -89,7 +96,7 @@ upe_class = xr.open_dataset('/scratch/UAV/L3/uav_20180724_PM_refl_class_clf20190
 	chunks={'x':1000, 'y':1000}) 
 upe_class.classified.attrs['pyproj_srs'] = 'epsg:32622'
 upe_class.albedo.attrs['pyproj_srs'] = 'epsg:32622'
-upe_class_plot = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20180724_PM_refl_cla_clf_20190130_171930.tif')
+upe_class_plot = georaster.SingleBandRaster('/scratch/UAV/L3/uav_20180724_PM_refl_cla_clf20190130_171930.tif')
 upe_class.classified.attrs['pyproj_srs'] = 'epsg:32622'
 #upe_class.classified.plot(cmap=cmap, vmin=0, vmax=7, add_colorbar=False)
 upe_class_plot.r = np.where(upe_class_plot.r <= 0, np.nan, upe_class_plot.r)
@@ -149,17 +156,16 @@ uavhc = uav_class.classified.sel(time='2017-07-21').salem.roi(shape=uav_poly)
 cmap_hist = mpl.colors.ListedColormap(['#C6DBEF','#B30000','#FDBB84','#B9B9B9'])
 color_dict = {'Snow':'#B9B9B9', 'CI':'#4292C6', 'LA':'#FDBB84', 'HA':'#B30000', 'Water':'#08519C'}
 
+counts1, bins = np.histogram(uavha.where(uavhc == 1), bins=50, range=(0,1))
 counts2, bins = np.histogram(uavha.where(uavhc == 2), bins=50, range=(0,1))
 counts3, bins = np.histogram(uavha.where(uavhc == 3), bins=50, range=(0,1))
 counts4, bins = np.histogram(uavha.where(uavhc == 4), bins=50, range=(0,1))
 counts5, bins = np.histogram(uavha.where(uavhc == 5), bins=50, range=(0,1))
-counts_all_s6 = pd.DataFrame({'Snow':counts2, 'CI':counts3, 'LA':counts4, 'HA':counts5}, index=bins[:-1])
+counts_all_s6 = pd.DataFrame({'Snow':counts2, 'CI':counts3, 'LA':counts4, 'HA':counts5, 'Water':counts1}, index=bins[:-1])
 counts_all_s6 = counts_all_s6 * (0.05**2)
 ax = counts_all_s6.plot(kind='bar', stacked=True, color=[color_dict.get(x) for x in counts_all_s6.columns], width=1, ax=ax, legend=False, linewidth=0)
 
 ax.spines['left'].set_position(('outward', 5))
-
-plt.legend(loc=(0.7,0.2), frameon=False)
 
 plt.xticks(np.arange(0,60,10), [0.0,0.2,0.4,0.6,0.8,1.0])
 
@@ -213,6 +219,8 @@ counts_all_upe = counts_all_upe * (0.05**2)
 
 counts_all_upe.plot(kind='bar', stacked=True, color=[color_dict.get(x) for x in counts_all_upe.columns], width=1, ax=ax, legend=False, linewidth=0)
 plt.xticks(np.arange(0,60,10), [0.0,0.2,0.4,0.6,0.8,1.0])
+
+plt.legend(loc=(-0.26,0.1), frameon=False)
 
 #plt.yticks(ytick_locs, ytick_labels)
 plt.ylabel('Area (sq. m)')

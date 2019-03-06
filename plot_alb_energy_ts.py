@@ -61,6 +61,7 @@ ax1.annotate('(a)', fontsize=8, fontweight='bold', xy=(0.02,0.95), xycoords='axe
 # Fluxes
 ax2 = plt.subplot(312)
 fluxes = fluxes.rolling('6H').mean()
+fluxes.SWR_Wm2[fluxes.SWR_Wm2 < 0] = 0
 plt.plot(fluxes.index, fluxes.SWR_Wm2, color='#FF2A22', label='SW$_{net}$')
 plt.plot(fluxes.index, fluxes.SHF_Wm2, color='#392C4A', label='SHF')
 plt.plot(fluxes.index, fluxes.LHF_Wm2, color='#49BAD3', label='LHF')
@@ -87,10 +88,10 @@ ax3.annotate('(c)', fontsize=8, fontweight='bold', xy=(0.02,0.95), xycoords='axe
            horizontalalignment='left', verticalalignment='top')
 
 ax4 = ax3.twinx()
-t_smooth = met_data['Taircorr(C)'].rolling('6H').mean()
+t_smooth = met_data['Taircorr(C)'].rolling('2H').mean()
 ax4.plot(t_smooth.index, t_smooth, color='white', linewidth=3)
 ax4.plot(t_smooth.index, t_smooth)
-plt.ylim(-8,4)
+plt.ylim(-8,4.5)
 plt.yticks([-6, -3, 0, 3], [-6, -3, 0, 3])
 plt.ylabel('2 m T ($^o C$)')
 
@@ -116,6 +117,7 @@ plt.tight_layout()
 plt.subplots_adjust(hspace=0.08)
 
 plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_energy_alb_ts.png', dpi=300)
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_energy_alb_ts.pdf', dpi=300)
 # rcParams['font.size'] = old_size
 # rcParams['axes.labelsize'] = old_size
 # rcParams['legend.fontsize'] = old_size
