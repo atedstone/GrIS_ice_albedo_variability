@@ -207,6 +207,7 @@ counts2, bins = np.histogram(uavha_upe.where(uavhc_upe == 2), bins=50, range=(0,
 counts3, bins = np.histogram(uavha_upe.where(uavhc_upe == 3), bins=50, range=(0,1))
 counts4, bins = np.histogram(uavha_upe.where(uavhc_upe == 4), bins=50, range=(0,1))
 counts5, bins = np.histogram(uavha_upe.where(uavhc_upe == 5), bins=50, range=(0,1))
+counts6, bins = np.histogram(uavha_upe.where(uavhc_upe == 6), bins=50, range=(0,1))
 
 # counts6, bins = np.histogram(uavha_upe.where(uavhc_upe == 6), bins=50, range=(0,1))
 # sum(counts6) * (0.05**2)
