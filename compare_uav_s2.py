@@ -376,13 +376,13 @@ s2_alb = s2_data.albedo.salem.roi(shape='/scratch/UAV/uav_2017_area.shp').mean(d
 # What time periods of the day are we covering / is there a problem with some atmospheric correction somewhere?
 
 
-## b01 refl
-mod09 = xr.open_dataset('/scratch/MOD09GA.006.FB/MOD09GA.2017.006.epsg3413_b1234q.nc')
-mod09b01 = mod09.sur_refl_b01_1.sel(X=modis_x, Y=modis_y, method='nearest')
+# ## b01 refl
+# mod09 = xr.open_dataset('/scratch/MOD09GA.006.FB/MOD09GA.2017.006.epsg3413_b1234q.nc')
+# mod09b01 = mod09.sur_refl_b01_1.sel(X=modis_x, Y=modis_y, method='nearest')
 
 
-# Check Sentinel 2 red band reflectance
-fn_path = '/home/at15963/projects/uav/data/S2/'
-im_path = 'S2B_MSIL2A_20170721T151909_N0205_R068_T22WEV_20170721T152003.SAFE_20m/S2B_MSIL2A_20170721T151909_N0205_R068_T22WEV_20170721T152003_20m.data/'
-s2_red = xr.open_rasterio(fn_path+im_path+'B4.img', chunks={'x':1000, 'y':1000})
+# # Check Sentinel 2 red band reflectance
+# fn_path = '/home/at15963/projects/uav/data/S2/'
+# im_path = 'S2B_MSIL2A_20170721T151909_N0205_R068_T22WEV_20170721T152003.SAFE_20m/S2B_MSIL2A_20170721T151909_N0205_R068_T22WEV_20170721T152003_20m.data/'
+# s2_red = xr.open_rasterio(fn_path+im_path+'B4.img', chunks={'x':1000, 'y':1000})
 
