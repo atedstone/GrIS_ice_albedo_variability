@@ -91,15 +91,9 @@ cb1.set_ticks([0.5,1.5])
 cb1.set_ticklabels(['CI', 'LA'])
 
 ## Albedo colourbar
-ax_alcb = fig.add_axes([0.87, 0.23, 0.03, 0.2])
-cmap_plot = mpl.cm.Greys_r
-norm_plot = mpl.colors.Normalize(vmin=0.2,vmax=0.6)
-cb1 = mpl.colorbar.ColorbarBase(ax_alcb, cmap=cmap_plot, norm=norm_plot,
-                                orientation='vertical')
-cb1.set_label('S2 albedo')
-cb1.set_ticks(np.arange(0.2,0.7,0.1), [0.2,0.3,0.4,0.5,0.6])
 
-plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_class_albedo_rasters_clf20190130_171930_S2clf20190305_170648.png', dpi=300)
+
+#plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_class_albedo_rasters_clf20190130_171930_S2clf20190305_170648.png', dpi=300)
 
 
 
@@ -124,7 +118,7 @@ print('21st changed px:', uav_dists_perc['2017-07-21'][changes == -1].mean())
 
 
 ### Sub-S2-pixel albedo distributions
-fig = plt.figure(figsize=(4,6))
+fig = plt.figure(figsize=(4.5,5.5))
 gs = GridSpec(3,2, figure=fig)
 
 xvals = np.arange(0,1,0.01)
@@ -142,6 +136,9 @@ plt.tick_params(axis='x', top='off')
 plt.ylabel('CI % of S2 pixel')
 ax.annotate('(a)', fontsize=8, fontweight='bold', xy=(0.04,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
+n = len(uav_alb_dists['2017-07-20'][uav_alb_dists['2017-07-20']['s2_class'] == 3])
+ax.annotate('n = %s' %n, fontsize=8, xy=(0.7,0.9), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top', fontstyle='italic')
 
 ## 07-20 LA
 ax = fig.add_subplot(gs[1,0])
@@ -155,6 +152,9 @@ plt.tick_params(axis='x', top='off')
 plt.ylabel('LA % of S2 pixel')
 ax.annotate('(c)', fontsize=8, fontweight='bold', xy=(0.04,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
+n = len(uav_alb_dists['2017-07-20'][uav_alb_dists['2017-07-20']['s2_class'] == 4])
+ax.annotate('n = %s' %n, fontsize=8, xy=(0.7,0.9), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top', fontstyle='italic')
 
 ## 07-21 CI
 ax = fig.add_subplot(gs[0,1])
@@ -168,6 +168,10 @@ plt.ylim(0,8.5)
 plt.tick_params(axis='x', top='off')
 ax.annotate('(b)', fontsize=8, fontweight='bold', xy=(0.04,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
+n = len(uav_alb_dists['2017-07-21'][uav_alb_dists['2017-07-21']['s2_class'] == 3])
+ax.annotate('n = %s' %n, fontsize=8, xy=(0.7,0.9), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top', fontstyle='italic')
+
 
 ## 07-21 LA
 ax = fig.add_subplot(gs[1,1])
@@ -180,6 +184,9 @@ plt.ylim(0,8.5)
 plt.tick_params(axis='x', top='off')
 ax.annotate('(d)', fontsize=8, fontweight='bold', xy=(0.04,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
+n = len(uav_alb_dists['2017-07-21'][uav_alb_dists['2017-07-21']['s2_class'] == 4])
+ax.annotate('n = %s' %n, fontsize=8, xy=(0.7,0.9), xycoords='axes fraction',
+           horizontalalignment='left', verticalalignment='top', fontstyle='italic')
 
 ## Changed pixels change in albedo distribution
 ax = fig.add_subplot(gs[2,:])
@@ -207,15 +214,17 @@ plt.yticks([0,3,6,9],[0,3,6,9])
 ax.annotate('(e)', fontsize=8, fontweight='bold', xy=(0.02,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
 
-plt.subplots_adjust(bottom=0.19, wspace=0.25)
+#bottom=0.19
+plt.subplots_adjust(wspace=0.25, hspace=0.25, right=0.8)
 
 # Add colorbar corresponding to albedo scatter colours in above plot
 # [left, bottom, width, height] in fractions of figure width and height
-cbax = fig.add_axes([0.2, 0.09, 0.6, 0.02])
+#cbax = fig.add_axes([0.2, 0.09, 0.6, 0.02])
+cbax = fig.add_axes([0.81, 0.14, 0.025, 0.15])
 cmap_plot = mpl.cm.YlGnBu_r
 cb1 = mpl.colorbar.ColorbarBase(cbax, cmap=cmap_plot,
                                 norm=norm,
-                                orientation='horizontal')
+                                orientation='vertical')
 cb1.set_label('Mean UAS albedo')
 cb1.set_ticks(np.arange(0.2,0.7,0.1))
 
@@ -223,6 +232,10 @@ sns.despine()
 
 plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_subpixel_distributions_clf20190130_171930_S2clf20190305_170648.png', dpi=300)
 plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_subpixel_distributions_clf20190130_171930_S2clf20190305_170648.pdf', dpi=300)
+
+# Fix pdf problems
+import subprocess
+subprocess.call('gs -sDEVICE=pdfwrite -dBATCH -dQUIET -sOutputFile=/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_subpixel_distributions_clf20190130_171930_S2clf20190305_170648_gs2.pdf /home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_subpixel_distributions_clf20190130_171930_S2clf20190305_170648.pdf', shell=True)
 
 from scipy import stats
 stats.shapiro(dist)
