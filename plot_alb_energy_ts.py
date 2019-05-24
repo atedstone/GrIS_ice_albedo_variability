@@ -118,18 +118,3 @@ plt.subplots_adjust(hspace=0.08)
 
 plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_energy_alb_ts.png', dpi=300)
 plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_energy_alb_ts.pdf', dpi=300)
-# rcParams['font.size'] = old_size
-# rcParams['axes.labelsize'] = old_size
-# rcParams['legend.fontsize'] = old_size
-
-"""
-Still to do:
-
-* Align y labels
-* Tidy legends
-* date limits for albedo subplot
-* SHF xlim cutoff
-* Style of albedo plotting? Tried a steps plot but it didn't look good. Could 
-just do horizontal bars not joined up (i.e. axhspan).
-
-"""

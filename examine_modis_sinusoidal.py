@@ -42,31 +42,3 @@ modis_pd = modis_pd / 100
 modis_pd.index = pd.DatetimeIndex(modis_pd.index)
 
 modis_pd.to_csv('/home/at15963/projects/uav/outputs/MOD10A1_sinusoidal_pixel_albedos.csv')
-
-#modis_proj = pyproj.Proj(modis.attrs['crs'])
-# mx,my = modis_proj(latx,laty)
-
-# plt.figure()
-# modis.plot()
-# plot(mx,my)
-
-# utm22n = pyproj.Proj('+init=epsg:32622')
-
-# ## bounds of the MODIS pixels in lat/lon:
-# # xarray = cell centres
-# # west (left) pixel
-# Sino KM -2137.458,7458.751
-# -49.35499,67.07808
-
-# # east (right) pixel
-# Sino KM -2137.085,7458.698
-# -49.34563,67.07765
-
-# # only the west pixel reduces albedo 20th-21st.
-
-
-# subset_x = slice(571523.766952,571877.884462)
-# subset_y = slice(7441194.212972,7440834.747463)
-# xxx = [571523, 571877, 571877, 571523, 571523]
-# yyy = [7441194, 7441194, 7440834, 7440834, 7441194]
-# latx,laty = utm22n(xxx,yyy, inverse=True)

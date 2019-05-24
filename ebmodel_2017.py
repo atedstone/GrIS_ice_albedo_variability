@@ -96,13 +96,11 @@ uav_flights = [
 	dt.datetime(2017,7,21,15,0),
 	dt.datetime(2017,7,22,10,0),
 	dt.datetime(2017,7,23,10,30)]
+
+"""	
 Imagery on 20 July at S6 was acquired at 12:00-12:45 LT.
 Imagery on 21 July at S6 was acquired at 14:50 LT onwards, hence shadows around hummocks (which are also thus visible in band 4 different maps).
 22 July: 10 am LT
 23 July: 10:30-11:30 LT
 
-# Calculate amount of melt which occurred at S6 between flights.
-# should I try to weight albedo used in model by that of UAV area? model running hourly, 
-# uav estimates are only once a day.
-# units are mmwe - but per what unit of time? --> looks like per the model timestep.
-# bar chart of daily melt, split by energy flux responsible
+"""
