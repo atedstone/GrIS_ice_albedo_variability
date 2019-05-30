@@ -41,18 +41,6 @@ uav_alb = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*albedo
 uav_alb['time'] = uav_times 
 uav_alb = add_srs(uav_alb, 'epsg:32622')
 
-# UAV HCRF reflectances
-uav_refl = xr.open_mfdataset('/scratch/UAV/uav2017_commongrid_bandcorrect/*refl*commongrid.tif_epsg32622.nc',
-	concat_dim='time', chunks={'y':2000, 'x':2000})
-# Set up the time coordinate.
-uav_refl['time'] = uav_times 
-# Correct using ground-UAV comparisons from compare_hcrf_uav.py
-uav_refl['Band1'] -= 0.17
-uav_refl['Band2'] -= 0.18
-uav_refl['Band3'] -= 0.15
-uav_refl['Band4'] -= 0.16
-uav_refl['Band5'] -= 0.1
-uav_refl = add_srs(uav_refl, 'epsg:32623')
 
 # UAV DEMs
 dem_times = [dt.datetime(2017,7,15),
