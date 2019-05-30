@@ -1,6 +1,9 @@
 # README
 
+This repository contains the scripts written for the analysis and plotting of the data underlying the study Tedstone et al. 'Algal growth and weathering crust structure drive variability in Greenland Ice Sheet ice albedo'.
+
 ## Associated repositories
+
 The scripts in this repository make use of the following additional repositories:
 
 - `IceSurfClassifiers`. DOI: 10.5281/zenodo.3228329 
@@ -9,42 +12,144 @@ The scripts in this repository make use of the following additional repositories
 - `imageprocessing`. DOI: 10.5281/zenodo.3228327
 
 
-## Description of workflow
 
-In most cases the scripts still contain hard-coded file paths and so require modification if you want to test them or re-use for your own purposes.
+## Datasets
+
+Datasets referenced in these scripts will be archived and allocated a DOI upon final manuscript publication. In the meantime they can be found at `https://www.dropbox.com/` or on request to the corresponding author.
+
+In several cases the scripts make reference to GeoTIFF representations of the data. The GeoTIFF representations are exactly the same as the data contained in the NetCDF versions and were generated from the NetCDFs using `gdalwarp`.
+
+
+
+## Description of workflows
+
+*Note*: In most cases the scripts still contain hard-coded file paths and so require modification if before trying to execute them.
+
 
 
 ### UAS imagery pre-processing and mosaicing
 
-1. See the README in `micasense_calibration`.
-2. Run `compare_hcrf_uav.py` to check for required scaling factors.
-3. 
+1. See the README in `micasense_calibration` for information on how to calibrate raw Micasense images (not provided with this publication). Publication-specific notes are provided below.
+2. Use reflectance-corrected images as inputs to Agisoft Photoscan.
+3. For 2017 data, run `compare_hcrf_uav.py` on orthomosaics versus ground data to check for required per-band scaling factors (computed by reference to ground spectroscopy).
+4. For 2017 data, run `georaster_common_grid.py` to put all orthomosaics onto exactly the same-sized grid.
 
-georaster_common_grid.py
+
+#### Publication-specific notes on image calibration
+
+##### Overview of steps
+
+1. Set up the image radiance-to-reflectance environment - full instructions accompany the GitHub repository `micasense_calibration`.
+2. Run image calibration (see repository readme - `calc_rad2refl` and `process_flight_images` scripts).
+3. Move files into per-band folders (`sort_images.py`)
+4. scp the files onto server node (if using a server)
+5. Use AgiSoft Photoscan according to USGS procedure.
+6. I didn't set common extents of each UAV image from 2017 in PhotoScan, instead I did this in post-processing using `georaster_common_grid.py`, which outputs new GeoTIFFs. I then converted these GeoTIFFs to netcdf files using gdalwarp, for ingestion into classification routines which are explained later in this readme.
+
+
+##### Note on reflectance panels
+
+It makes no difference to the processing chain whether the Micasense panel or a Spectralon panel is used. If using a Spectralon panel then create a panel-specific file of the same format as that for a Micasense panel - as per the Micasense website, "The calibration data is provided as absolute reflectance (a value between 0.0 and 1.0) in the range of 400 nm to 850 nm (in increments of 1 nm). The calibration curve can be further simplified to be represented by 5 reflectance values, one for each of the 5 bands of the camera, by averaging the reflectance values in the calibration curve across the bandwidth of each band." 
+
+So, if using a 99% Spectralon panel then provide 0.99 for each band.
+
+
+##### Getting images ready
+
+1. Run `calc_rad2refl.py`
+2. Run `process_flight_images.py`
+3. Move images into per-band folders (`sort_images.py`)
+
+
+##### For 2018 imagery
+
+Unlike in 2017, we took refl panel photos before and after each individual flight rather than just before flight 1 and after flight 2. The pixel consisted of two separate flights and so each flight needs to be pre-processed individually, i.e.:
+
+    20180724_F1/raw/<only raw images for this flight>
+    20180724_F2/raw/<same>
+
+Within each folder run `calc_rad2refl.py` and then `process_flight_images.py`.
+
+Then merge refl back into a new single folder:
+    
+    20180724/refl/
+
+and now run `sort_images.py`.
+
+
+
+##### PhotoScan operating procedure
+
+Remember that in PhotoScan speak, 'camera' equals viewing location.
+
+Import using Workflow -> Add Folder. Select 'Create multispectral cameras from folders as bands'.
+
+Photos will probably appear to have blown highlights when imported. To fix, in the Workspace pane right-click the Chunk then select Set Brightness... option.
+
+Aim for at least 10 projections of each GCP. This probably won't be possible for GCPs located towards the edges of the flight area. Also, don't insist on this - if image quality is too poor to resolve GCP well then don't bother.
+
+Set GCP Z accuracy to 20 metres to minimise their importance in solving the DEM solution - as the GCPs were not placed with accurate Z positioning in mind.
+
+Identify the first 3-4 GCPs then run Optimise Cameras. This will auto-place subsequent estimated GCPs very near their ground targets, speeding up the process.
+
+Open the orthomosaic and check each band separately for blown exposure. If  blown patches then follow the instructions for removing 'purple fringes' in the USGS instructions. 
+
+Orthomosaic export: Untick alpha channel export (other GDAL, QGIS etc don't understand the format).
+
+
+
+
+##### Using gdalwarp
+
+Take care with reprojecting using gdalwarp. Even with bilinear interpolation, noise seems to be introduced that can be visible when differencing broadband albedo products. Better to export with correct projection directly out of photoscan. gdalwarp is still ok to use to crop to common grid area, though.
+
+
+##### Pyramids for visualisation
+
+Build pyramids prior to visualisation in QGIS:
+
+    gdaladdo -clean uav_20170724_refl_5cm.tif
+    gdaladdo -r average -ro --config USE_RRD NO --config TILED YES --config GDAL_CACHEMAX 10240 uav_20170724_refl_5cm.tif 2 4 8 16
+
+(see also https://www.northrivergeographic.com/archives/pyramid-layers-qgis-arcgis)
+
+
+##### Notes from 2017 processing
+
+* Gradual selection: hit Level=10 in most cases. Did not go below this.
+* Projection accuracy: all scenes are <=3.
+* Tie-point accuracy: 0.3-0.5
+* Reprojection error: .3.
+
+All GCPs used in all scenes, except:
+
+* 2017-07-21: GCP10 removed as it was obscured by GPS antenna logging its position at time of survey.
+* 2017-07-24: GCP3 removed as GCP had come out of the ice.
+
+
 
 ### Classification
 
-1. Execute `IceSurfClassifiers/classify_msrededge.py` and `classify_sentinel2.py`.
-2. Execute `IceSurfClassifiers/predict_msrededge.py` and `predict_sentinel2.py`.
+1. Optionally: execute `IceSurfClassifiers/classify_msrededge.py`, `classify_sentinel2.py` to train the model.
+2. Execute `IceSurfClassifiers/predict_msrededge.py`, `predict_sentinel2.py`. If training the model afresh rather than using an existing model then update the model pkl filename first.
+
 
 
 ### Analysis and plotting
 
-### Helper scripts
+#### Helper scripts
 
-load_s2_data.py
-load_ground_data.py
-load_uav_data.py
+* `load_s2_data.py`
+* `load_ground_data.py`
+* `load_uav_data.py`
 
 
 #### Statistics, etc
 
 * Topographic and hydrologic controls: 
-    - `analyse_s6_slope_versus_class.py` 
-    - `analyse_slopes.py`
-    - `calculate_slope_angle.py` 
-    - `detrend_uav2018.py`
-    - `detrend_uav_dems.py`
+    - `detrend_uav_dems.py` - run twice for 2017-07-21 data, (1) to detrend the surface for to enable calculation of local roughness statistics quoted in manuscript text, and (2) using a smaller window size in order to create a 'blurred' surface from which to calculate slope angle.
+    - `detrend_uav2018.py` - specific to UPE DEM, run twice as above.
+    - `calculate_slope_angle.py` - uses output (2) of `detrend_uav_dems.py`
 * MODIS albedo change pixel-by-pixel: `examine_modis_sinusoidal.py`
 
 
