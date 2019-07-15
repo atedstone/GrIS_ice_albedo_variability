@@ -51,7 +51,7 @@ plt.title('UPE', fontdict={'fontweight':'bold'})
 plt.xlabel('')
 plt.ylabel('')
 plt.axis('off')
-ax.annotate('(b)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes fraction',
+ax.annotate('(d)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
 
 # Scale bar for images
@@ -87,7 +87,7 @@ plt.title('')
 plt.xlabel('')
 plt.ylabel('')
 plt.axis('off')
-ax.annotate('(c)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes fraction',
+ax.annotate('(b)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
 
 ## UPE Class
@@ -107,7 +107,7 @@ plt.title('')
 plt.xlabel('')
 plt.ylabel('')
 plt.axis('off')
-ax.annotate('(d)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes fraction',
+ax.annotate('(e)', fontsize=8, fontweight='bold', xy=(0.2,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
 
 ## Classes colourbar
@@ -144,6 +144,15 @@ ytick_labels = (ytick_locs * (0.05**2)).astype(int) #sq m
 uavha = uav_class.albedo.sel(time='2017-07-21').salem.roi(shape=uav_poly)
 uavhc = uav_class.classified.sel(time='2017-07-21').salem.roi(shape=uav_poly)
 
+# uavha.where(uavhc == 5) \
+# 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='High Biomass', color='#B30000')
+# uavha.where(uavhc == 4) \
+# 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='Low Biomass', color='#FDBB84')
+# uavha.where(uavhc == 3) \
+# 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='Clean Ice', color='#4292C6')
+# uavha.where(uavhc == 2) \
+# 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='Snow', color='#B9B9B9')
+
 cmap_hist = mpl.colors.ListedColormap(['#C6DBEF','#B30000','#FDBB84','#B9B9B9'])
 color_dict = {'Snow':'#B9B9B9', 'CI':'#4292C6', 'LA':'#FDBB84', 'HA':'#B30000', 'Water':'#08519C'}
 
@@ -160,6 +169,7 @@ ax.spines['left'].set_position(('outward', 5))
 
 plt.xticks(np.arange(0,60,10), [0.0,0.2,0.4,0.6,0.8,1.0])
 
+#plt.yticks(ytick_locs, ytick_labels)
 plt.ylabel('Area (sq. m)')
 #plt.xlim(0.1,0.9)
 plt.xlabel('Albedo')
@@ -168,7 +178,7 @@ plt.ylim(0,3500)
 ax.tick_params(axis='x', labelrotation=0)
 sns.despine()
 
-ax.annotate('(e)', fontsize=8, fontweight='bold', xy=(0.02,0.95), xycoords='axes fraction',
+ax.annotate('(c)', fontsize=8, fontweight='bold', xy=(0.02,0.95), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
 
 class_counts_s6 = uavhc.groupby(uavhc).count().load().to_pandas()
@@ -183,6 +193,14 @@ uavhc_upe = upe_class.classified.salem.roi(shape=uav_poly_upe)
 uavha_upe['x'] = uavhc_upe.x
 uavha_upe['y'] = uavhc_upe.y
 
+# uavha_upe.where(uavhc_upe == 2) \
+# 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='Snow', color='#B9B9B9')
+# uavha_upe.where(uavhc_upe == 3) \
+# 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='Clean Ice', color='#4292C6')
+# uavha_upe.where(uavhc_upe == 4) \
+# 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='Low Biomass', color='#FDBB84')
+# uavha_upe.where(uavhc_upe == 5) \
+# 	.plot.hist(bins=50, range=(0,1), alpha=0.7, label='High Biomass', color='#B30000')
 
 counts1, bins = np.histogram(uavha_upe.where(uavhc_upe == 1), bins=50, range=(0,1))
 counts2, bins = np.histogram(uavha_upe.where(uavhc_upe == 2), bins=50, range=(0,1))
@@ -190,6 +208,11 @@ counts3, bins = np.histogram(uavha_upe.where(uavhc_upe == 3), bins=50, range=(0,
 counts4, bins = np.histogram(uavha_upe.where(uavhc_upe == 4), bins=50, range=(0,1))
 counts5, bins = np.histogram(uavha_upe.where(uavhc_upe == 5), bins=50, range=(0,1))
 counts6, bins = np.histogram(uavha_upe.where(uavhc_upe == 6), bins=50, range=(0,1))
+
+# counts6, bins = np.histogram(uavha_upe.where(uavhc_upe == 6), bins=50, range=(0,1))
+# sum(counts6) * (0.05**2)
+# counts1, bins = np.histogram(uavha_upe.where(uavhc_upe == 1), bins=50, range=(0,1))
+# sum(counts1) * (0.05**2)
 
 counts_all_upe = pd.DataFrame({'Snow':counts2, 'CI':counts3, 'LA':counts4, 'HA':counts5, 'Water':counts1}, index=bins[:-1])
 
@@ -233,3 +256,13 @@ plt.yticks([])
 plt.xticks([])
 
 plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s6_upe_comparison_clf20190130_171930.png', dpi=300)
+"""
+To do:
+
+Add sampled total area for each location - within specified polygon.
+Add scale bars
+Add location map context.
+Mark dominant slope direction on the two top plots. 
+Add some boxing or something to illustrate main supraglacial stream on S6 plot.
+
+"""
