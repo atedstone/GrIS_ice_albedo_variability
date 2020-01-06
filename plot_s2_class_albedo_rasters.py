@@ -54,6 +54,7 @@ s2_data.classified.sel(x=modis_area_x, y=modis_area_y, time='2017-07-20').plot.i
 add_common_features(ax)
 ax.annotate('(a)', fontsize=8, fontweight='bold', xy=(0.03,0.92), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
+plt.title('20 July')
 
 # 21 July class
 ax = plt.subplot(222, projection=map_proj)
@@ -61,6 +62,7 @@ s2_data.classified.sel(x=modis_area_x, y=modis_area_y, time='2017-07-21').plot.i
 add_common_features(ax)
 ax.annotate('(b)', fontsize=8, fontweight='bold', xy=(0.03,0.92), xycoords='axes fraction',
            horizontalalignment='left', verticalalignment='top')
+plt.title('21 July')
 
 # 20 July albedo
 ax = plt.subplot(223, projection=map_proj)
@@ -91,14 +93,20 @@ cb1.set_ticks([0.5,1.5])
 cb1.set_ticklabels(['CI', 'LA'])
 
 ## Albedo colourbar
+ax_alcb = fig.add_axes([0.87, 0.23, 0.03, 0.2])
+cmap_plot = mpl.cm.Greys_r
+norm_plot = mpl.colors.Normalize(vmin=0.2,vmax=0.6)
+cb1 = mpl.colorbar.ColorbarBase(ax_alcb, cmap=cmap_plot, norm=norm_plot,
+                                orientation='vertical')
+cb1.set_label('S2 albedo')
+cb1.set_ticks(np.arange(0.2,0.7,0.1), [0.2,0.3,0.4,0.5,0.6])
 
-
-#plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission1/figures/s2_class_albedo_rasters_clf20190130_171930_S2clf20190305_170648.png', dpi=300)
+plt.savefig('/home/at15963/Dropbox/work/papers/tedstone_uavts/submission2/figures/s2_class_albedo_rasters_clf20190130_171930_S2clf20190305_170648.png', dpi=300)
 
 
 
 ### Associated statistics...
-
+"""
 # Calculate percentage coverage of each surface type as measured by Sentinel-2 in the UAV area
 for t in subset.time:
 	counts = subset.sel(time=t).groupby(subset.sel(time=t)).count().load()
@@ -206,7 +214,7 @@ for ix,row in uav_alb_change.iterrows():
 	#(row.alb_in_bin + 1) / 2
 
 plt.plot(np.arange(-1,1,0.01), uav_alb_change.binned.mean(), linewidth=1, color='black')
-plt.xlim(-0.2,0.3)
+plt.xlim(-0.3,0.3)
 plt.xlabel('Albedo change')
 plt.tick_params(axis='x', top='off')
 plt.ylabel('% area of S2 pixel', labelpad=10)
@@ -239,3 +247,4 @@ subprocess.call('gs -sDEVICE=pdfwrite -dBATCH -dQUIET -sOutputFile=/home/at15963
 
 from scipy import stats
 stats.shapiro(dist)
+"""
